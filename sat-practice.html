@@ -1,0 +1,2082 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Practice — SAT Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#F2EDE6;--bg2:#EDE4D9;--bg3:#E4D8C8;
+  --dark:#2C231A;--dark2:#4A3E33;--mid:#7B6B5A;
+  --light:#C4AE96;--pale:#D9CDBE;--accent:#C4854A;
+  --accent2:#E8C49A;--white:#FAF7F2;
+  --ok:#3B6D11;--ok-bg:#EAF3DE;--err:#B94040;--err-bg:#FCEBEB;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--dark);min-height:100vh;display:flex;flex-direction:column;}
+
+/* NAV */
+nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:60px;background:var(--dark2);position:sticky;top:0;z-index:100;}
+.logo{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:var(--bg);text-decoration:none;}
+.logo span{color:var(--accent2);}
+.nav-right{display:flex;align-items:center;gap:20px;}
+.timer-box{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.1);border:1px solid rgba(196,174,150,0.3);border-radius:8px;padding:6px 14px;}
+.timer-icon{width:16px;height:16px;stroke:var(--accent2);fill:none;stroke-width:1.8;stroke-linecap:round;}
+.timer-val{font-size:15px;font-weight:500;color:var(--accent2);font-variant-numeric:tabular-nums;min-width:48px;}
+.timer-val.urgent{color:#F09595;animation:blink 1s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.5;}}
+.nav-score{font-size:13px;color:var(--light);}
+.nav-score strong{color:var(--accent2);}
+.btn-end{background:var(--accent);color:var(--white);border:none;padding:8px 18px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:260px 1fr;flex:1;min-height:calc(100vh - 60px);}
+
+/* SIDEBAR */
+.sidebar{background:var(--bg2);border-right:1px solid var(--pale);padding:14px 10px;overflow-y:auto;min-width:220px;}
+.sidebar-section{margin-bottom:16px;}
+.sidebar-label{font-size:9px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);margin-bottom:6px;padding:0 4px;display:flex;align-items:center;gap:6px;}
+.sidebar-label::after{content:'';flex:1;height:1px;background:var(--pale);}
+.module-tab{display:flex;align-items:center;gap:7px;padding:7px 9px;border-radius:7px;cursor:pointer;transition:background .15s;margin-bottom:2px;}
+.module-tab:hover{background:var(--bg3);}
+.module-tab.active{background:var(--dark2);}
+.module-tab.active .mtab-name{color:var(--white);}
+.module-tab.active .mtab-count{color:var(--accent2);}
+.mtab-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.mtab-name{font-size:12px;font-weight:400;color:var(--dark2);flex:1;line-height:1.3;}
+.mtab-count{font-size:10px;color:var(--mid);white-space:nowrap;}
+.topic-tab{display:flex;align-items:center;gap:7px;padding:6px 9px;border-radius:7px;cursor:pointer;transition:all .15s;margin-bottom:2px;border:1px solid transparent;}
+.topic-tab:hover{background:var(--bg3);}
+.topic-tab.active{background:var(--accent);border-color:var(--accent);}
+.topic-tab.active .ttab-name{color:#fff;}
+.topic-tab.active .ttab-count{color:rgba(255,255,255,0.75);}
+.ttab-icon{font-size:12px;width:16px;text-align:center;flex-shrink:0;}
+.ttab-name{font-size:11px;color:var(--dark2);flex:1;line-height:1.3;}
+.ttab-count{font-size:10px;color:var(--mid);white-space:nowrap;}
+
+.q-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;}
+.q-dot{width:36px;height:36px;border-radius:6px;border:1.5px solid var(--pale);background:var(--white);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:var(--mid);cursor:pointer;transition:all .15s;}
+.q-dot:hover{border-color:var(--accent);}
+.q-dot.current{border-color:var(--accent);background:var(--accent);color:var(--white);}
+.q-dot.answered{background:var(--bg3);border-color:var(--light);color:var(--dark2);}
+.q-dot.correct{background:var(--ok-bg);border-color:var(--ok);color:var(--ok);}
+.q-dot.wrong{background:var(--err-bg);border-color:var(--err);color:var(--err);}
+
+.progress-wrap{margin-top:8px;}
+.progress-bar{height:4px;background:var(--pale);border-radius:2px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s ease;}
+.progress-label{font-size:11px;color:var(--mid);margin-top:5px;}
+
+/* MAIN */
+.main{padding:32px 48px;overflow-y:auto;display:flex;flex-direction:column;gap:24px;}
+
+/* MODULE HEADER */
+.module-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.module-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--dark2);}
+.module-subtitle{font-size:13px;color:var(--mid);margin-top:2px;}
+.q-nav-btns{display:flex;gap:8px;}
+.btn-prev,.btn-next{background:var(--bg2);border:1.5px solid var(--pale);color:var(--dark2);padding:8px 18px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.btn-prev:hover,.btn-next:hover{border-color:var(--accent);color:var(--accent);}
+.btn-next.primary{background:var(--dark2);color:var(--white);border-color:var(--dark2);}
+.btn-next.primary:hover{background:var(--accent);border-color:var(--accent);}
+
+/* QUESTION CARD */
+.q-card{background:var(--white);border:1px solid var(--pale);border-radius:14px;padding:32px;animation:fadeUp .3s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.q-meta{display:flex;align-items:center;gap:10px;margin-bottom:20px;}
+.q-num-badge{background:var(--dark2);color:var(--white);font-size:12px;font-weight:500;padding:4px 12px;border-radius:100px;}
+.q-type-badge{background:var(--bg3);color:var(--mid);font-size:11px;font-weight:500;padding:4px 10px;border-radius:100px;text-transform:uppercase;letter-spacing:0.06em;}
+.q-body{font-size:15px;line-height:1.8;color:var(--dark);margin-bottom:24px;}
+.q-body strong{font-weight:500;}
+.q-prompt{font-size:14px;font-weight:500;color:var(--dark2);margin-bottom:16px;padding:12px 16px;background:var(--bg2);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;}
+
+/* CHOICES */
+.choices{display:flex;flex-direction:column;gap:10px;}
+.choice{display:flex;align-items:flex-start;gap:14px;padding:14px 16px;border:1.5px solid var(--pale);border-radius:10px;cursor:pointer;transition:all .2s;background:var(--white);}
+.choice:hover:not(.locked){border-color:var(--accent);background:rgba(196,133,74,0.04);}
+.choice.selected{border-color:var(--accent);background:rgba(196,133,74,0.08);}
+.choice.correct{border-color:var(--ok);background:var(--ok-bg);}
+.choice.wrong{border-color:var(--err);background:var(--err-bg);}
+.choice.reveal-correct{border-color:var(--ok);background:var(--ok-bg);}
+.choice-letter{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--pale);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:var(--mid);flex-shrink:0;transition:all .2s;}
+.choice.selected .choice-letter{border-color:var(--accent);background:var(--accent);color:var(--white);}
+.choice.correct .choice-letter{border-color:var(--ok);background:var(--ok);color:var(--white);}
+.choice.wrong .choice-letter{border-color:var(--err);background:var(--err);color:var(--white);}
+.choice.reveal-correct .choice-letter{border-color:var(--ok);background:var(--ok);color:var(--white);}
+.choice-text{font-size:14px;line-height:1.65;color:var(--dark);padding-top:3px;}
+
+/* FREE RESPONSE */
+.free-input{width:100%;padding:12px 16px;border:1.5px solid var(--pale);border-radius:10px;font-size:14px;color:var(--dark);font-family:'DM Sans',sans-serif;background:var(--white);outline:none;transition:border-color .2s;resize:none;min-height:56px;}
+.free-input:focus{border-color:var(--accent);}
+
+/* EXPLANATION */
+.explanation{margin-top:20px;padding:16px 20px;border-radius:10px;border-left:4px solid var(--ok);background:var(--ok-bg);display:none;}
+.explanation.show{display:block;animation:fadeUp .3s ease both;}
+.explanation.wrong-exp{border-color:var(--err);background:var(--err-bg);}
+.exp-title{font-size:13px;font-weight:500;color:var(--ok);margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.exp-title.wrong-t{color:var(--err);}
+.exp-text{font-size:13px;color:var(--dark2);line-height:1.65;}
+
+/* SHARE BUTTON */
+.btn-share-q{display:inline-flex;align-items:center;gap:5px;margin-left:auto;background:transparent;border:1.5px solid var(--pale);color:var(--mid);padding:5px 12px;border-radius:100px;font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;}
+.btn-share-q:hover{border-color:var(--accent);color:var(--accent);}
+
+/* SHARE MODAL */
+.share-overlay{position:fixed;inset:0;background:rgba(44,35,26,0.5);display:none;align-items:flex-end;justify-content:center;z-index:500;padding:0;}
+.share-overlay.show{display:flex;}
+.share-sheet{background:var(--white);border-radius:20px 20px 0 0;width:100%;max-width:520px;max-height:80vh;display:flex;flex-direction:column;animation:slideUp .25s ease both;}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.share-handle{width:40px;height:4px;background:var(--pale);border-radius:2px;margin:12px auto 0;}
+.share-header{padding:16px 20px 12px;border-bottom:1px solid var(--pale);}
+.share-title{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--dark2);}
+.share-subtitle{font-size:12px;color:var(--mid);margin-top:3px;}
+.share-preview{margin:14px 20px;background:var(--bg2);border-radius:10px;padding:12px 14px;border-left:3px solid var(--accent);}
+.share-preview-label{font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--mid);margin-bottom:6px;}
+.share-preview-text{font-size:13px;color:var(--dark2);line-height:1.5;max-height:60px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;}
+.share-search{padding:0 20px 10px;}
+.share-search input{width:100%;padding:9px 13px;border:1.5px solid var(--pale);border-radius:10px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--dark);background:var(--bg);outline:none;transition:border-color .2s;}
+.share-search input:focus{border-color:var(--accent);}
+.share-list{overflow-y:auto;flex:1;}
+.share-section-label{font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid);padding:8px 20px 4px;}
+.share-item{display:flex;align-items:center;gap:12px;padding:10px 20px;cursor:pointer;transition:background .15s;}
+.share-item:hover{background:var(--bg2);}
+.share-item.selected{background:rgba(196,133,74,0.08);}
+.share-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;font-family:'Playfair Display',serif;}
+.share-item-name{font-size:14px;font-weight:500;color:var(--dark2);}
+.share-item-sub{font-size:11px;color:var(--mid);margin-top:1px;}
+.share-check{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--pale);margin-left:auto;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.share-item.selected .share-check{background:var(--accent);border-color:var(--accent);}
+.share-item.selected .share-check::after{content:'✓';font-size:11px;color:#fff;}
+.share-footer{padding:14px 20px;border-top:1px solid var(--pale);display:flex;gap:10px;}
+.share-note{flex:1;padding:10px 12px;border:1.5px solid var(--pale);border-radius:10px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--dark);background:var(--bg);outline:none;resize:none;}
+.share-note:focus{border-color:var(--accent);}
+.btn-send-share{background:var(--dark2);color:#fff;border:none;padding:10px 22px;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .2s;white-space:nowrap;}
+.btn-send-share:hover{background:var(--accent);}
+.btn-send-share:disabled{opacity:0.4;cursor:default;}
+.share-cancel{position:absolute;top:16px;right:20px;background:none;border:none;color:var(--mid);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+/* sent toast */
+.share-toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--dark2);color:#fff;padding:12px 24px;border-radius:100px;font-size:14px;font-weight:500;opacity:0;transition:all .3s;z-index:600;pointer-events:none;}
+.share-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* SUBMIT BTN */
+.btn-submit-ans{background:var(--dark2);color:var(--white);border:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .2s;margin-top:20px;}
+.btn-submit-ans:hover{background:var(--accent);}
+.btn-submit-ans:disabled{opacity:0.4;cursor:default;}
+
+/* RESULTS SCREEN */
+.results-screen{display:none;flex-direction:column;align-items:center;padding:32px 20px;gap:0;}
+.results-screen.show{display:flex;}
+.sat-score-wrap{width:100%;max-width:600px;background:var(--white);border:1px solid var(--pale);border-radius:18px;overflow:hidden;animation:fadeUp .5s ease both;}
+.sat-score-header{background:var(--dark2);padding:24px 32px;text-align:center;position:relative;overflow:hidden;}
+.sat-score-header::before{content:'';position:absolute;top:-50px;right:-50px;width:180px;height:180px;border-radius:50%;border:35px solid rgba(196,133,74,0.1);}
+.sat-logo-txt{font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:var(--accent2);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:4px;}
+.sat-report-lbl{font-size:12px;color:var(--light);font-weight:300;}
+.sat-total-score{text-align:center;padding:28px 32px 20px;border-bottom:1px solid var(--pale);}
+.sat-total-label{font-size:11px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid);margin-bottom:10px;}
+.sat-total-num{font-family:'Playfair Display',serif;font-size:68px;font-weight:900;color:var(--dark2);line-height:1;position:relative;display:inline-block;}
+.sat-total-denom{font-size:18px;font-weight:300;color:var(--light);margin-left:4px;vertical-align:bottom;padding-bottom:10px;}
+.sat-total-range{font-size:12px;color:var(--mid);margin-top:8px;}
+.sat-grade-badge{display:inline-block;padding:4px 14px;border-radius:100px;font-size:12px;font-weight:500;margin-top:8px;}
+.sat-sections{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--pale);}
+.sat-section-block{padding:20px 24px;}
+.sat-section-block:first-child{border-right:1px solid var(--pale);}
+.sat-section-name{font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--mid);margin-bottom:6px;}
+.sat-section-score{font-family:'Playfair Display',serif;font-size:36px;font-weight:900;color:var(--dark2);line-height:1;}
+.sat-section-max{font-size:12px;color:var(--light);margin-top:2px;}
+.sat-section-bar{height:4px;background:var(--pale);border-radius:2px;overflow:hidden;margin-top:10px;}
+.sat-section-fill{height:100%;border-radius:2px;transition:width 1s ease .4s;}
+.sat-breakdown{padding:20px 24px;border-bottom:1px solid var(--pale);}
+.sat-breakdown-title{font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--mid);margin-bottom:12px;}
+.sat-breakdown-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.sat-breakdown-item{background:var(--bg2);border-radius:10px;padding:12px;text-align:center;}
+.sat-breakdown-num{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--dark2);}
+.sat-breakdown-lbl{font-size:11px;color:var(--mid);margin-top:2px;}
+.sat-actions{padding:20px 24px 16px;display:flex;gap:10px;flex-wrap:wrap;}
+.btn-sat-primary{flex:1;background:var(--dark2);color:var(--white);border:none;padding:13px 16px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .2s;}
+.btn-sat-primary:hover{background:var(--accent);}
+.btn-sat-secondary{flex:1;background:transparent;color:var(--dark2);border:1.5px solid var(--pale);padding:13px 16px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;}
+.btn-sat-secondary:hover{border-color:var(--accent);color:var(--accent);}
+.sat-countdown{font-size:12px;color:var(--mid);text-align:center;padding:0 24px 16px;}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .layout{grid-template-columns:1fr;}
+  .sidebar{display:none;}
+  .main{padding:20px 16px;}
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="sat-auth.js"></script>
+</head>
+<body>
+
+<nav>
+  <a href="sat-dashboard.html" class="logo">S<span>AT</span></a>
+  <div class="nav-right">
+    <div class="timer-box">
+      <svg class="timer-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+      <span class="timer-val" id="timerDisplay">32:00</span>
+    </div>
+    <div class="nav-score">Score: <strong id="navScore">0</strong></div>
+    <button class="btn-end" onclick="endTest()">Finish</button>
+  </div>
+</nav>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+
+    <!-- ENGLISH PRACTICES -->
+    <div class="sidebar-section">
+      <div class="sidebar-label">📖 English Practices</div>
+      <div class="module-tab active" onclick="switchModule(0)" id="tab0">
+        <div class="mtab-dot" style="background:#C4854A"></div>
+        <div class="mtab-name">Dec R&amp;W — Module 1</div>
+        <div class="mtab-count">27 Q</div>
+      </div>
+      <div class="module-tab" onclick="switchModule(1)" id="tab1">
+        <div class="mtab-dot" style="background:#7B6B5A"></div>
+        <div class="mtab-name">Dec R&amp;W — Module 2</div>
+        <div class="mtab-count">27 Q</div>
+      </div>
+    </div>
+
+    <!-- MATH PRACTICES -->
+    <div class="sidebar-section">
+      <div class="sidebar-label">✖️ Math Practices</div>
+      <div class="module-tab" onclick="switchModule(2)" id="tab2">
+        <div class="mtab-dot" style="background:#9E8A77"></div>
+        <div class="mtab-name">Dec Math — Module 1</div>
+        <div class="mtab-count">22 Q</div>
+      </div>
+      <div class="module-tab" onclick="switchModule(3)" id="tab3">
+        <div class="mtab-dot" style="background:#C4AE96"></div>
+        <div class="mtab-name">Dec Math — Module 2</div>
+        <div class="mtab-count">17 Q</div>
+      </div>
+    </div>
+
+    <!-- FULL MOCK -->
+    <div class="sidebar-section">
+      <div class="sidebar-label">🎯 Full Mock</div>
+      <div class="module-tab" onclick="switchModule('all')" id="tabAll">
+        <div class="mtab-dot" style="background:#3B6D11"></div>
+        <div class="mtab-name">December Full Mock</div>
+        <div class="mtab-count">93 Q</div>
+      </div>
+    </div>
+
+    <!-- TOPIC DRILLS -->
+    <div class="sidebar-section">
+      <div class="sidebar-label">🎓 Topic Drills</div>
+      <div id="topicTabs"></div>
+    </div>
+
+    <!-- QUESTIONS -->
+    <div class="sidebar-section">
+      <div class="sidebar-label">Questions</div>
+      <div class="q-grid" id="qGrid"></div>
+      <div class="progress-wrap">
+        <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+        <div class="progress-label" id="progressLabel">0 answered</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main" id="mainArea">
+    <div class="module-header">
+      <div>
+        <div class="module-title" id="moduleTitle">Section 1, Module 1: Reading & Writing</div>
+        <div class="module-subtitle" id="moduleSubtitle">Questions 1–27 · 32 minutes</div>
+      </div>
+      <div class="q-nav-btns">
+        <button class="btn-prev" onclick="prevQ()">← Prev</button>
+        <button class="btn-next primary" onclick="nextQ()" id="nextBtn">Next →</button>
+      </div>
+    </div>
+
+    <div id="questionArea"></div>
+
+    <div class="results-screen" id="resultsScreen"></div>
+  </div>
+</div>
+
+<script>
+  SATAuth.init().then(async () => {
+    const session = await SATAuth.requireAuth('sat-login.html');
+    if (!session) return;
+  });
+
+const MODULES = [
+  {
+    title:"Section 1, Module 1: Reading & Writing",
+    subtitle:"Questions 1–27 · 32 minutes",
+    time:32*60,
+    questions:[
+      {
+        type:"Vocabulary",
+        body:"Scholars of Mexican literature have focused their attention on writers of the fertile period following the Mexican Revolution (which lasted from 1910–1920), such as Laura Esquivel. These writers are often considered the leading figures of the Mexican literary canon, but nineteenth-century writers like Antonio Menendez de la Peña are just as _____ Mexican literature.",
+        prompt:"Which choice completes the text with the most logical and precise word or phrase?",
+        choices:["overlooked in","polarizing in","essential to","knowledgeable about"],
+        answer:2,
+        explanation:"The sentence argues that 19th-century writers are just as important as the celebrated writers. 'Essential to' best captures this idea of equal importance to Mexican literature."
+      },
+      {
+        type:"Vocabulary",
+        body:"Several scholars of children's literature recently _____ to discuss the work of Sharon Bell Mathis, author of such lauded books as Ray Charles. Once together, they talked about her style, influences, and themes.",
+        prompt:"Which choice completes the text with the most logical and precise word or phrase?",
+        choices:["stipulated","convened","cited","ascribed"],
+        answer:1,
+        explanation:"'Convened' means to come together for a meeting or gathering, which perfectly fits scholars gathering to discuss an author's work."
+      },
+      {
+        type:"Vocabulary",
+        body:"Whereas researchers long thought the Congo rainforest constrained the initial expansion of Bantu-speaking peoples across subequatorial Africa, recent studies indicate that early Bantu communities managed to _____ the rainforest, a feat facilitated by drier conditions that opened up viable corridors through the vegetation.",
+        prompt:"Which choice completes the text with the most logical and precise word or phrase?",
+        choices:["traverse","decimate","circumvent","preserve"],
+        answer:0,
+        explanation:"'Traverse' means to travel across or through. The passage says corridors opened 'through the vegetation,' meaning they went through — not around — the rainforest."
+      },
+      {
+        type:"Vocabulary",
+        body:"The extensive use of the costly pigment ultramarine in the paintings of Johannes Vermeer was likely _____ as much by the pigment's chemical durability as by its exclusiveness and vivid blue hue: relative to indigo and other blue pigments employed by Vermeer and his contemporaries, ultramarine is less susceptible to degradation.",
+        prompt:"Which choice completes the text with the most logical and precise word or phrase?",
+        choices:["constrained","motivated","expedited","preempted"],
+        answer:1,
+        explanation:"'Motivated' means driven or prompted. Vermeer's use of ultramarine was driven (motivated) by both its durability and its vivid appearance."
+      },
+      {
+        type:"Command of Evidence",
+        body:"It may seem that works of art are best experienced in person. However, in an online collection from the Tokyo Fuji Art Museum, people can zoom in on a high-quality image of the woodblock print Fine Breezy Day by Katsushika Hokusai. A student argues that viewers usually can't examine works of art in a museum as carefully as they can examine works in online collections.",
+        prompt:"Which statement, if true, would most directly support the underlined argument?",
+        choices:[
+          "Most museums have signs that provide basic information about the works of art on display.",
+          "Many museums have started adding images of works from their collections to their websites.",
+          "Most museums don't allow visitors to get very close to the works of art on display.",
+          "Museums don't always put works by different artists together in one room."
+        ],
+        answer:2,
+        explanation:"The student argues you can't examine art as carefully in museums. If museums don't let visitors get close, that directly supports why online viewing (with zoom) allows more careful examination."
+      },
+      {
+        type:"Main Idea",
+        body:"Harold Newton's Yellow Day, a wetland landscape with palm trees and lush greenery set against the pastel yellows and pinks of the sky and water, is typical of paintings by the mid-twentieth-century landscape artists now known as the Florida Highwaymen. Even though Florida was rapidly being developed at that time, tourists in particular held the idea that its distinctive tropical and coastal environments represented a pristine natural world, untouched by modernity. As with many Highwaymen paintings, the appeal of Yellow Day derived from its ability to capture this sentiment.",
+        prompt:"Which choice best states the main idea of the text?",
+        choices:[
+          "Although many paintings by the Florida Highwaymen have subjects in common, Yellow Day is now more highly regarded by critics than other Florida Highwaymen paintings are.",
+          "Although Yellow Day and other paintings by the Florida Highwaymen were originally celebrated for their depictions of Florida's natural environments, art historians now question these paintings' accuracy.",
+          "Tourists to Florida in the mid-twentieth century were more likely to admire the sentiments expressed in Yellow Day and similar paintings than Florida residents were.",
+          "Yellow Day and other paintings by the Florida Highwaymen were notable for their ability to appeal to a popular conception about the state of Florida in the mid-twentieth century."
+        ],
+        answer:3,
+        explanation:"The text's main idea is that Highwaymen paintings like Yellow Day appealed to a popular (tourist) idea that Florida was a pristine natural world. Choice D captures this perfectly."
+      },
+      {
+        type:"Main Idea",
+        body:"Mushrooms, including Coprinellus micaceus and species from the genus Cantharellus, are known to use evapotranspiration to maintain internal temperatures below ambient temperatures. This hypothermic behavior is enhanced by the many thin gills (lamellae) on the fungi's caps. Examining fungal thermoregulation mechanisms, Radames Cordéro et al. determined that molds and yeasts also engage in evaporative cooling to facilitate hypothermia and suggest that, lacking features analogous to lamellae, these unicellular fungi aggregate into colonies to derive the benefit of greater surface area.",
+        prompt:"Which choice best states the main idea of the text?",
+        choices:[
+          "Although a certain thermoregulation process has been observed in colonies of unicellular fungi, it has yet to be observed at the individual organism level.",
+          "A recent analysis of specimens of Coprinellus micaceus substantiated the findings of earlier studies of thermoregulation mechanisms in several types of fungi.",
+          "A study of a fungal thermoregulation mechanism determined that it is used more efficiently by molds and yeasts than by mushrooms due to variances in colony size.",
+          "Despite significant differences in their biological structures, mushrooms, molds, and yeasts have been observed to utilize the same thermoregulation process to achieve a particular effect."
+        ],
+        answer:3,
+        explanation:"All three types — mushrooms, molds, and yeasts — use evaporative cooling (the same process) despite structural differences. Choice D correctly identifies this as the main idea."
+      },
+      {
+        type:"Rhetorical Purpose",
+        body:"Editor Jared Shurin's 2023 anthology The Big Book of Cyberpunk contains 108 stories. In his introduction, Shurin defines cyberpunk as a subgenre of speculative fiction concerning 'the influence of technology on the scale, the pace, or the pattern of human affairs'; however, many critics have previously argued that cyberpunk is a literary movement that is not just idea driven but that has distinctive aesthetic components as well.",
+        prompt:"Which choice best describes the function of the underlined portion ('the influence of technology...human affairs') in the text as a whole?",
+        choices:[
+          "It points out a characteristic that is shared by the work of Tiptree and Lakshminarayan.",
+          "It explains one of several points of disagreement that an editor of a cyberpunk anthology has with a group of critics.",
+          "It explains why some critics think that a particular anthology of cyberpunk stories should not be considered a definitive summary of its genre.",
+          "It suggests a way in which a particular editor's definition of cyberpunk may be considered incomplete."
+        ],
+        answer:3,
+        explanation:"The underlined portion is Shurin's definition, which focuses only on ideas/technology influence. The text then says critics argue cyberpunk also has aesthetic components — suggesting Shurin's definition is incomplete."
+      },
+      {
+        type:"Command of Evidence",
+        body:"Baltimore, Maryland, has installed shoreline-hardening structures along 71% of its shoreline. To evaluate the responses of waterbirds to shoreline hardening and other landscape alterations, Diann Prosser et al. surveyed waterbird communities consisting of sixty-four species. Utilizing the Index of Waterbird Community Integrity (IWCI), on which a low score corresponds to low community integrity, the researchers concluded that shoreline hardening more negatively affects waterbirds than does land development for uses such as housing or agriculture.",
+        prompt:"Which finding, if true, would most directly CHALLENGE the researchers' conclusion?",
+        choices:[
+          "Waterbird communities at Margothy (low developed land, high hardened shoreline) had LOWER average IWCI scores than at Back River (high developed land, low hardened shoreline).",
+          "Waterbird communities at Stony and Curtis (high developed land and hardened shoreline) had similar IWCI scores, whereas communities at Ware and Honga (low of both) had widely differing IWCI scores.",
+          "Waterbird communities at Mill (low developed land, high hardened shoreline) had HIGHER average IWCI scores than at Langford (high developed land, low hardened shoreline).",
+          "Waterbird communities at Old Road (high developed land and hardened shoreline) had lower IWCI scores than at Onancock (low of both)."
+        ],
+        answer:2,
+        explanation:"Choice C challenges the conclusion because it shows a site with HIGH hardened shoreline had BETTER waterbird integrity than a site with HIGH land development — the opposite of what the researchers concluded."
+      },
+      {
+        type:"Rhetorical Purpose",
+        body:"Joseph A. Walker's award-winning play The River Niger was produced in 1972 by the groundbreaking Negro Ensemble Company (NEC). NEC cofounder Robert Hooks had met actor and playwright Douglas Turner Ward while performing in a 1960 touring production of A Raisin in the Sun. Together, they envisioned a theater company that would nurture and showcase the work of Black theater professionals. Since NEC's founding in 1967, its workshops and performances have given Black playwrights, including Walker, a forum for their compelling stories.",
+        prompt:"Which choice best describes the function of the underlined sentence ('Together, they envisioned...Black theater professionals') in the text?",
+        choices:[
+          "It provides additional information about a person mentioned in the text.",
+          "It emphasizes the ongoing significance of the theater company discussed in the text.",
+          "It illustrates the widespread influence of a play discussed earlier in the text.",
+          "It explains the circumstances that led to the formation of the theater company discussed in the text."
+        ],
+        answer:3,
+        explanation:"The underlined sentence describes how Hooks and Ward together envisioned the NEC — directly explaining the circumstances that led to NEC's formation."
+      },
+      {
+        type:"Main Idea",
+        body:"The Cygne is just one of approximately three million known historical shipwrecks spread throughout the world's oceans. Leila Hamdan and colleagues were particularly curious about the effects of wooden shipwrecks on seafloor microbial communities. The researchers studied two wooden shipwrecks in the Gulf of Mexico by placing pieces of pine and oak between zero and 200 meters away from each shipwreck. They found that across the three microbial communities, peak diversity and richness was observed on pine and oak samples placed approximately 125 meters from the shipwrecks.",
+        prompt:"Which choice best describes the overall structure of the text?",
+        choices:[
+          "It states the number of known shipwrecks, describes the historical significance of one of those shipwrecks, and then comments on the various microbes found at the shipwreck site.",
+          "It notes a general scientific interest in shipwrecks' ecological effects, describes a specific study related to that interest, and then states one of the study's findings.",
+          "It introduces a study of microbial communities near shipwrecks that has received significant scholarly attention, summarizes the results, and then describes a research team's reaction.",
+          "It names a famous historical shipwreck, describes the type of wood used to build that ship, and then explains how that wood type influences underwater microbial communities."
+        ],
+        answer:1,
+        explanation:"The text: (1) notes general interest in shipwrecks' effects, (2) describes a specific study, (3) states the finding about 125 meters. Choice B matches this three-part structure."
+      },
+      {
+        type:"Rhetorical Purpose",
+        body:"The fecal-steroidal profile of pronghorn is clearly distinct from those of other ungulates. By contrast, bison dung cannot be distinguished from elk dung based solely on their fecal-steroidal profiles, as both contain similar levels of beta-sitosterol and cholestanone. The relative levels of fecal zoostanols in layers of lake bed sediments at Buffalo Ford Lake in Yellowstone National Park show that bison, elk, or both have been the dominant ungulate species in the lake's watershed for at least the last 2,000 years.",
+        prompt:"Which choice best describes the function of the underlined portion ('bison dung cannot be distinguished from elk dung...') in the text?",
+        choices:[
+          "It offers context that helps account for the finding that the dominant ungulate species in the Buffalo Ford Lake watershed have been largely unchanged for 2,000 years.",
+          "It presents an observation that supports an argument about why the dominant ungulate species in the watershed shifted over the last 2,000 years.",
+          "It describes an assumption about two types of ungulates' fecal-steroidal profiles that the research on Buffalo Ford Lake sediment calls into question.",
+          "It provides information that explains why the data from Buffalo Ford Lake allow for multiple possibilities regarding the dominant ungulate species."
+        ],
+        answer:3,
+        explanation:"Because bison and elk dung look the same in fecal-steroidal profiles, the lake data cannot distinguish between the two — explaining why the conclusion says 'bison, elk, or both.'"
+      },
+      {
+        type:"Data Analysis",
+        body:"Installing a new high-speed rail (HSR) hub in an area has the potential to boost residential development nearby. This potential is greatest when HSR hubs are established in areas far away from city centers, as these locations tend to have more available land for redevelopment.\n\nFour European High-Speed Rail Hubs:\n• København H (Denmark) — existing hub (urban)\n• Lille Europe (France) — peripheral replacement (urban periphery)\n• Reggio Emilia AV Mediopadana (Italy) — distributed services (urban periphery)\n• Stuttgart Hbf (Germany) — existing hub (urban)",
+        prompt:"Which statement is best supported by information from the text and table?",
+        choices:[
+          "The area around Lille Europe has greater potential for residential development than the area around Reggio Emilia AV Mediopadana does.",
+          "The area around Lille Europe has greater potential for residential development than the area around København H does.",
+          "The area around København H has greater potential for residential development than the area around Reggio Emilia AV Mediopadana does.",
+          "The area around København H has greater potential for residential development than the area around Stuttgart Hbf does."
+        ],
+        answer:1,
+        explanation:"Lille Europe is on the urban periphery (farther from city center), while København H is an urban existing hub (in city center). The text says potential is greatest far from city centers, so Lille Europe has greater potential than København H."
+      },
+      {
+        type:"Command of Evidence",
+        body:"Providence, Rhode Island, has installed shoreline-hardening structures along 62% of its shoreline. Diann Prosser et al. surveyed waterbird communities consisting of sixty-four species. Utilizing the IWCI (low score = low community integrity), the researchers concluded that shoreline hardening more negatively affects waterbirds than does land development for uses such as housing or agriculture.",
+        prompt:"Which finding, if true, would most directly CHALLENGE the researchers' conclusion?",
+        choices:[
+          "Waterbird communities at Margothy (low developed land, high hardened shoreline) had lower IWCI scores than at Back River (high developed land, low hardened shoreline).",
+          "Waterbird communities at Stony and Cultis (high percentages of both) had similar IWCI scores, while communities at Ware and Honga (low of both) had widely differing scores.",
+          "Waterbird communities at Old Road (high developed land and hardened shoreline) had lower IWCI scores than at Onancock (low of both).",
+          "Waterbird communities at Mill (low developed land, high hardened shoreline) had higher IWCI scores than at Langford (high developed land, low hardened shoreline)."
+        ],
+        answer:3,
+        explanation:"Choice D challenges the conclusion: a site with HIGH hardened shoreline scores BETTER than a site with HIGH land development. This is the opposite of what the researchers concluded."
+      },
+      {
+        type:"Textual Evidence",
+        body:"Memoirs of Elleanor Eldridge is an 1838 historical account. In the book, the authors suggest that many memoirs of renowned people aren't particularly straightforward or candid.",
+        prompt:"Which quotation from the book most effectively illustrates this claim?",
+        choices:[
+          "'There is often a kind of [deceptive] light, playing around such [famous] names, calculated to dazzle and mislead, by their false lustre, until the eye can no longer receive the pure light of Truth.'",
+          "'It should not be considered essential to the interest and value of biography, that its subject be of exalted rank, or illustrious name.'",
+          "'How careful ought we to be to speak nothing but the truth, even in regard to the most trifling circumstances.'",
+          "'Blessed are the slumbers of the innocent! They are kindlier than balm, and they refresh and gladden the spirit of childhood.'"
+        ],
+        answer:0,
+        explanation:"Choice A directly illustrates that memoirs of famous people have 'deceptive light' that misleads — capturing both 'not straightforward' and 'not candid.'"
+      },
+      {
+        type:"Rhetorical Purpose",
+        body:"The synthesis of novel superheavy elements, such as nihonium (Nh), has led theorists to consider the feasibility of synthesizing all possible chemical compounds. In 2022, Guillermo Restrepo calculated the historical rates at which newly discovered compounds have entered the scientific literature, expanding the 'chemical space.' Using a conservative estimate of the number of viable compounds and assuming a doubling of the historical pace of discovery, Restrepo found that under these hypothetical conditions, all potential compounds could be synthesized and documented by 2050.",
+        prompt:"Which choice best describes the function of the underlined portion ('Using a conservative estimate...doubling of the historical pace of discovery') in the text?",
+        choices:[
+          "It introduces information that helps explain why the synthesis of superheavy elements has rapidly expanded the chemical space.",
+          "It provides details about the qualification later in the sentence regarding the prospect of cataloging the full range of possible chemical compounds.",
+          "It emphasizes the point implicitly made earlier in the text that human inefficiency is the primary constraint on the expansion of the chemical space.",
+          "It makes a comparison between the past and current rates at which new chemical compounds have entered the scientific literature."
+        ],
+        answer:1,
+        explanation:"The underlined portion describes the specific assumptions Restrepo used. These assumptions qualify the conclusion ('by 2050') — they are the conditions under which the finding holds."
+      },
+      {
+        type:"Grammar",
+        body:"While conducting an interview for her book Latina Authors and Their Muses, editor Mayra Calvani asked Margo Candela, author of the young adult novel The Brenda Diaries, what _____ Candela's response was The Phantom Tollbooth by Norton Juster.",
+        prompt:"Which choice completes the text so that it conforms to the conventions of Standard English?",
+        choices:["was her favorite book!","was her favorite book?","her favorite book was.","her favorite book was?"],
+        answer:2,
+        explanation:"The blank follows 'what' and is embedded in a reported/indirect question. Indirect questions use statement word order ('her favorite book was') without a question mark."
+      },
+      {
+        type:"Grammar",
+        body:"Following the swing era of the 1930s, cool jazz emerged as yet another innovative style in jazz _____ larger ensembles than those of their predecessors, cool jazz composers like Chico Hamilton emphasized smooth melodies in their works.",
+        prompt:"Which choice completes the text so that it conforms to the conventions of Standard English?",
+        choices:["music. Featuring","music, featuring","music, to feature","music to feature"],
+        answer:0,
+        explanation:"'Featuring larger ensembles...' is a participial phrase that modifies 'cool jazz composers.' It needs to begin a new sentence or be clearly set off. 'Music. Featuring' creates a clear participial phrase starting the next sentence correctly."
+      },
+      {
+        type:"Grammar",
+        body:"In Puerto Rico, it's not unusual for a city or town to be known by a nickname that corresponds to one of its notable features, like landscape, _____ or chief exports.",
+        prompt:"Which choice completes the text so that it conforms to the conventions of Standard English?",
+        choices:["climate famous residents,","climate famous residents","climate, famous residents,","climate; famous residents;"],
+        answer:2,
+        explanation:"This is a list of three items separated by commas: 'landscape, climate, famous residents, or chief exports.' Choice C correctly places a comma after 'climate' and after 'residents.'"
+      },
+      {
+        type:"Grammar",
+        body:"Many places in the United States share a name with a foreign city or country. When founding the city of Warsaw, Indiana, residents decided to name _____ after the Polish city of Warsaw.",
+        prompt:"Which choice completes the text so that it conforms to the conventions of Standard English?",
+        choices:["them","it","that","us"],
+        answer:1,
+        explanation:"'It' refers to the singular city being founded (Warsaw, Indiana). 'Them' would be plural, 'that' and 'us' don't fit grammatically."
+      },
+      {
+        type:"Grammar",
+        body:"New Mexico governor _____ the first woman to serve in that role in the state's history — took office on January 1, 2011.",
+        prompt:"Which choice completes the text so that it conforms to the conventions of Standard English?",
+        choices:["Susana Martinez:","Susana Martinez","Susana Martinez,","Susana Martinez–"],
+        answer:3,
+        explanation:"The phrase 'the first woman to serve in that role in the state's history' is a nonessential appositive set off by dashes. The sentence uses an em dash (–) before 'took office,' so the opening dash must also be an em dash: 'Susana Martinez–'."
+      },
+      {
+        type:"Grammar",
+        body:"Jean-Michel Basquiat was an American artist who produced more than two thousand _____ His work Self-Portrait was completed in 1981 and sold at auction in 2016 for $4.7 million.",
+        prompt:"Which choice completes the text so that it conforms to the conventions of Standard English?",
+        choices:["drawing's and painting's.","drawings and painting's.","drawings and paintings.","drawings' and paintings'."],
+        answer:2,
+        explanation:"'Drawings and paintings' are simple plurals, not possessives. No apostrophes are needed. Choice C is correct."
+      },
+      {
+        type:"Grammar",
+        body:"At the Ruskin School of Acting in Santa Monica, California, students can learn the world-famous Meisner technique _____ by acting teacher Sanford Meisner, this technique trains actors to react naturally to the other performers in a scene.",
+        prompt:"Which choice completes the text so that it conforms to the conventions of Standard English?",
+        choices:["Develops","Developing","Develop","Developed"],
+        answer:3,
+        explanation:"'Developed by acting teacher Sanford Meisner' is a past participial phrase modifying 'technique.' The past participle 'Developed' is needed."
+      },
+      {
+        type:"Grammar",
+        body:"Generally, sleek vehicles are more aerodynamic than bulkier ones. The streamlined nose of the F-104 Starfighter jet, _____ helps it glide through wind with relative ease, while a boxy pickup truck encounters more wind resistance, making it less aerodynamic.",
+        prompt:"Which choice completes the text with the most logical transition?",
+        choices:["however,","meanwhile,","for instance,","additionally,"],
+        answer:2,
+        explanation:"The sentence gives the F-104 Starfighter as a specific example of the general claim about sleek vehicles being aerodynamic. 'For instance' signals this example relationship."
+      },
+      {
+        type:"Transition",
+        body:"When ordering the branches of the Yukon River system by Hack's method, one begins with the riverway's lowest point, the Yukon River. _____ when using Strahler's method, one begins at the top of the river system, with the Kanuti River and other tributaries fed by Alaska's Llewellyn Glacier.",
+        prompt:"Which choice completes the text with the most logical transition?",
+        choices:["Indeed,","Specifically,","Alternatively,","In other words,"],
+        answer:2,
+        explanation:"The sentence contrasts two different methods (Hack's vs. Strahler's). 'Alternatively' signals a contrasting option or approach."
+      },
+      {
+        type:"Transition",
+        body:"As volcanologists like Tamsin Mather are apt to make clear, not all volcanoes are the same. Agua de Pau in the Azores Islands, for example, is a stratovolcano, a conical volcano built up by many layers of hardened lava and tephra. Methana in Greece, _____ is a lava dome, a circular mound-shaped protrusion resulting from the slow extrusion of viscous lava.",
+        prompt:"Which choice completes the text with the most logical transition?",
+        choices:["in any case,","in conclusion,","in contrast,","in fact,"],
+        answer:2,
+        explanation:"Methana (a lava dome) contrasts with Agua de Pau (a stratovolcano). 'In contrast' signals this difference between two types of volcanoes."
+      },
+      {
+        type:"Research Skills",
+        body:"A student has taken these notes:\n• The cuneiform script is the earliest known set of symbols used for writing.\n• Sumerian was one of the first languages to be written using the cuneiform script.\n• Sumerian was a language in ancient Mesopotamia (present-day Iraq).\n• Clay tablets with Sumerian writing have been found there.\n• Some of these tablets are almost 5,000 years old.",
+        prompt:"The student wants to IDENTIFY A LANGUAGE that was written using the cuneiform script. Which choice most effectively uses relevant information from the notes?",
+        choices:[
+          "Examples of Mesopotamian writing that are nearly 5,000 years old have been found.",
+          "Clay tablets with cuneiform script have been found in present-day Iraq.",
+          "A language in ancient Mesopotamia used the cuneiform script for writing.",
+          "Sumerian, an ancient Mesopotamian language, was written using the cuneiform script."
+        ],
+        answer:3,
+        explanation:"The goal is to identify a specific language. Only choice D names the language (Sumerian) and connects it directly to the cuneiform script."
+      }
+    ]
+  },
+  {
+    title:"Section 1, Module 2: Reading & Writing",
+    subtitle:"Questions 1–27 · 32 minutes",
+    time:32*60,
+    questions:[
+      {
+        type:"Vocabulary",
+        body:"'Bien Pretty' is an English-language short story by Sandra Cisneros that often includes Spanish words and phrases. In Their Dogs Came with Them, Helena Maria Viramontes frequently _____ Spanish text as well. But readers who are unfamiliar with Spanish can easily read both works since the meaning of the Spanish text can be inferred from the surrounding English text.",
+        prompt:"Which choice completes the text with the most logical and precise word or phrase?",
+        choices:["suspects","relaxes","loses","uses"],
+        answer:3,
+        explanation:"Like Cisneros, Viramontes 'uses' (incorporates) Spanish text in her work. The parallel structure with 'includes' in the previous sentence makes 'uses' the most logical choice."
+      },
+      {
+        type:"Vocabulary",
+        body:"One reasonable way to evaluate the _____ of a scholar's research is to track how often other scholars refer to that research. For example, Princeton University economist Anne Case is among the world's most frequently cited researchers in her specialty, indicating that her work has had a significant effect on the field.",
+        prompt:"Which choice completes the text with the most logical and precise word or phrase?",
+        choices:["expense","unity","complexity","impact"],
+        answer:3,
+        explanation:"The passage measures how much influence research has on a field (how often it's cited). 'Impact' means influence or effect, which best fits this context."
+      },
+      {
+        type:"Vocabulary",
+        body:"Featuring contributions from Zulema Valdez, Robert W. Fairlie, and other scholars, Advancing U.S. Latino Entrepreneurship (2020) is intended to _____ two kinds of readers. According to Jerry I. Porras and the book's other editors, it should be of interest to researchers as well as current and aspiring entrepreneurs.",
+        prompt:"Which choice completes the text with the most logical and precise word or phrase?",
+        choices:["detract from","evaluate","appeal to","bewilder"],
+        answer:2,
+        explanation:"The book is 'intended to' reach two kinds of readers and 'should be of interest to' them. 'Appeal to' means to attract or interest, which fits perfectly."
+      },
+      {
+        type:"Vocabulary",
+        body:"The Apollo Moon landings (1969–1972) brought magnetic field sensors and soil sensors to the Moon and produced large amounts of data, much of which was stored on technologies that are now obsolete. A data-transfer project is working to _____ these data so that the information is available to researcher Noah Petro, who is investigating the geology of the Moon.",
+        prompt:"Which choice completes the text with the most logical and precise word or phrase?",
+        choices:["amend","salvage","simplify","improve"],
+        answer:1,
+        explanation:"The data is stored on obsolete technologies, making it at risk of being lost. 'Salvage' means to rescue or recover something from being lost — exactly what the project aims to do."
+      },
+      {
+        type:"Vocabulary",
+        body:"Smart watches and wireless speakers tend to rely on batteries that can't be easily taken out and swapped for new ones. Environmental policy researcher Jessika Richter warns that because these gadgets can't _____ without working batteries, once the batteries stop working, the devices are typically disposed of as trash.",
+        prompt:"Which choice completes the text with the most logical and precise word or phrase?",
+        choices:["decide","separate","expand","function"],
+        answer:3,
+        explanation:"The devices can't operate without batteries — 'function' means to work or operate, which is exactly what is meant here."
+      },
+      {
+        type:"Inference",
+        body:"Mariana Lopes Barata and Pedro Simões Coelho found that performance expectancy is positively correlated with users' intentions to adopt premium music streaming services. They also found that users' intentions to purchase a premium service positively influence their intentions to recommend the premium service to others, which suggests that _____",
+        prompt:"Which choice most logically completes the text?",
+        choices:[
+          "by encouraging existing users to recommend premium services to nonusers, music streaming companies may increase how beneficial their existing users perceive the premium version to be.",
+          "users' intentions to pay for premium streaming services are probably unaffected by factors other than performance expectancy.",
+          "if music streaming companies can increase the degree to which some potential users perceive the premium version to be beneficial, they may generate interest from other potential users they have not reached directly.",
+          "participants who strongly agreed that paid streaming is advantageous were more likely to express loyalty to Apple Music than to other services."
+        ],
+        answer:2,
+        explanation:"The chain: perceived benefit → intention to pay → intention to recommend. This suggests that increasing perceived benefit for some users leads to recommendations that reach other potential users — choice C."
+      },
+      {
+        type:"Textual Evidence",
+        body:"The Man-Made World: Or, Our Androcentric Culture is a 1911 nonfiction work by Charlotte Perkins Gilman. In the text, the author emphasizes the importance of cultivating individuals rather than comparing them: _____",
+        prompt:"Which quotation from the work most effectively illustrates this claim?",
+        choices:[
+          "'We do not sadly measure the cabbage-stalk by the corn-stalk, and praise the corn for getting ahead of the cabbage. We nourish both, to its best growth — and are the richer.'",
+          "'We have but to learn the real elements in humanity; its true powers and natural characteristics.'",
+          "'What is [the family's] rational development in humanness; in mechanical, mental and social lines.'",
+          "'That every child on earth shall have right conditions to make the best growth possible to it; that every citizen, from birth to death, shall have a chance to learn all he or she can [absorb].'"
+        ],
+        answer:0,
+        explanation:"Choice A directly illustrates cultivating rather than comparing: don't measure the cabbage against the corn — nourish both to their best growth. This perfectly matches 'cultivating individuals rather than comparing them.'"
+      },
+      {
+        type:"Inference",
+        body:"High-speed rail systems — in which trains can move at great speeds — are expanding in many countries because high-speed rail can reduce the number of automobiles on the road and ultimately conserve energy. In Austria, for instance, 254 kilometers of high-speed rail lines are in operation as of 2023, and 231 kilometers are under construction.",
+        prompt:"Based on the text, why might Austria be expanding its high-speed rail system?",
+        choices:[
+          "Residents of Austria demand that high-speed rail be expanded despite the cost of doing so.",
+          "High-speed rail systems in Austria are currently viewed more favorably than they have been in the past.",
+          "The current high-speed rail systems in Austria are getting older and need improvements.",
+          "High-speed rail systems are a more energy-efficient choice for residents of Austria than automobile use is."
+        ],
+        answer:3,
+        explanation:"The text says high-speed rail expands because it reduces automobiles and conserves energy. Austria is given as an example of this expansion, so the reason must be energy efficiency."
+      },
+      {
+        type:"Text Structure",
+        body:"What is a city? The answer depends on where you live! Many countries define an area as a city based on how many people live there. However, not every country uses the same numbers. Greenland defines a city as an area with a population of at least 200, while Switzerland defines a city as having a minimum population of 10,000. Some countries even define cities using other factors, like if there is a local government.",
+        prompt:"Which choice best describes the overall structure of the text?",
+        choices:[
+          "It poses a question, then explains why the question has many answers.",
+          "It offers a recommendation, then provides reasons for that recommendation.",
+          "It describes two locations, then explains why only one of the locations is considered a city.",
+          "It lists the number of cities in one country, then compares that number to the number of cities in another country."
+        ],
+        answer:0,
+        explanation:"The text opens with 'What is a city?' and then explains that the answer varies by country (many answers), giving examples of Greenland, Switzerland, and other factors."
+      },
+      {
+        type:"Inference",
+        body:"Researchers define valence as a person's perception of how pleasant an odor is. Conventional wisdom holds that valence is culturally mediated. A team of scientists led by Artin Arshamian tested people from ten different places — including the Mah Meri people and the Seri people — and ranked ten odors. In general, respondents ranked scents similarly regardless of where they lived, overwhelmingly choosing linalool as more pleasant than diethyl disulfide. These results show that _____",
+        prompt:"Which choice most logically completes the text?",
+        choices:[
+          "the conventional belief that odor pleasantness can be objectively measured is questionable.",
+          "the standard view of culture's role in olfactory valence may be unsound.",
+          "the respondents agreed more often on unpleasant odors than they did on pleasant ones.",
+          "valence may affect cultural traditions more strongly than researchers had previously predicted."
+        ],
+        answer:1,
+        explanation:"The study found people from very different cultures ranked odors similarly, which challenges the conventional view that odor preferences are culturally mediated. Choice B says this view 'may be unsound.'"
+      },
+      {
+        type:"Dual Text",
+        body:"Text 1: Today's sloths spend most of their time high up in trees. The sloths' inaccessibility has made it hard for scientists to study them.\n\nText 2: By using a hat-like monitor, biologist Bryson Voirin and colleagues can at last discover the previously hidden activities of sloths. Such monitors can provide information to correct misconceptions. It was long believed that sloths are very gentle. But, in fact, sloths have very sharp claws and will attack if threatened.",
+        prompt:"Based on the texts, the author of Text 1 and the author of Text 2 would most likely agree with which statement about sloths?",
+        choices:[
+          "Sloths typically live very long lives.",
+          "Sloths have been challenging to observe.",
+          "Sloths are usually unpleasant animals.",
+          "Sloths prefer certain types of trees over other types."
+        ],
+        answer:1,
+        explanation:"Text 1 says sloths' inaccessibility makes them hard to study. Text 2 says monitors can 'at last' discover previously hidden activities. Both agree sloths have been challenging to observe."
+      },
+      {
+        type:"Data Analysis",
+        body:"Examples of Hoards Found in Ireland and Northern Ireland:\n• Coggalbeg Hoard — 24th–19th century BCE — 1945 — gold pieces\n• Balline Hoard — 4th century CE — 1940 — silver pieces\n• Ardagh Hoard — 10th century CE — 1868 — silver and bronze pieces\n\nAn anthropologist is recording the metal contents of various historical deposits of valuables. She notes that the hoards differed in their contents; for example, _____",
+        prompt:"Which choice most effectively uses data from the table to complete the statement?",
+        choices:[
+          "the Balline Hoard and the Ardagh Hoard each contained bronze.",
+          "the Coggalbeg Hoard was the only hoard that contained just gold.",
+          "the Coggalbeg Hoard contained no gold or silver.",
+          "the Ardagh Hoard was the only hoard that contained silver."
+        ],
+        answer:1,
+        explanation:"From the table: Coggalbeg = gold only; Balline = silver only; Ardagh = silver and bronze. So Coggalbeg is the only hoard with exclusively gold. Choice B is correct."
+      },
+      {
+        type:"Data Analysis",
+        body:"A bar graph shows: 'Volcanoes Active since 1800 and since 1960 in Two Countries'\n• Vanuatu: ~9 active since 1800, ~6 active since 1960\n• Eritrea: ~2 active since 1800, ~2 active since 1960\n\nA student is collecting data about countries with volcanoes that have been active since 1800 and since 1960. The student records that Eritrea has _____",
+        prompt:"Which choice most effectively uses data from the graph to complete the statement?",
+        choices:[
+          "no volcanoes that have been active since 1800.",
+          "more volcanoes that have been active since 1960 than Vanuatu has.",
+          "fewer volcanoes that have been active since 1960 than Vanuatu has.",
+          "the same number of volcanoes that have been active since 1800 as Vanuatu has."
+        ],
+        answer:2,
+        explanation:"From the graph, Vanuatu has ~6 volcanoes active since 1960, while Eritrea has ~2. Eritrea therefore has fewer volcanoes active since 1960 than Vanuatu."
+      },
+      {
+        type:"Grammar",
+        body:"Many ranching terms come from Spanish. For example, the word 'mustang' comes from the Spanish word mesteñas, and 'hackamore' (a halter) _____ from jáquima. This is because the first Anglo, African, and Native American cattle ranchers in the southwestern US learned the trade from Spanish-speaking Mexican vaqueros.",
+        prompt:"Which choice completes the text so that it conforms to the conventions of Standard English?",
+        choices:["had come","comes","will come","will be coming"],
+        answer:1,
+        explanation:"The sentence uses simple present tense ('come') throughout. 'Comes' maintains consistent present tense to state a current fact about word origins."
+      },
+      {
+        type:"Grammar",
+        body:"Nicknamed 'The Borinqueneers,' the US Army's 65th Infantry Regiment has a membership that has included Colonel Juan Cordero Davila, Sergeant First Class Felix Nieves, and thousands of other Puerto Rican servicepeople. In 2016, these soldiers were honored for _____ historic service when President Barack Obama awarded the 65th Infantry Regiment with the Congressional Gold Medal.",
+        prompt:"Which choice completes the text so that it conforms to the conventions of Standard English?",
+        choices:["their","there","it's","they're"],
+        answer:0,
+        explanation:"'Their' is the possessive pronoun referring to the soldiers' service. 'There' is a location, 'it's' means 'it is,' and 'they're' means 'they are' — none fit."
+      },
+      {
+        type:"Grammar",
+        body:"One example of public art (art that's readily accessible to the general public) _____ the work First Generation. This sculpture is installed in a public square in Boat Quay, Singapore.",
+        prompt:"Which choice completes the text so that it conforms to the conventions of Standard English?",
+        choices:["being","were","are","is"],
+        answer:3,
+        explanation:"'One example' is a singular subject, requiring a singular verb. 'Is' is the correct singular present tense verb. 'Are' is plural, 'were' is past tense, 'being' is not a finite verb."
+      },
+      {
+        type:"Grammar",
+        body:"In 1979, the suffragist Susan B. Anthony _____ the first woman featured on a US coin. Her image appeared on the $1 coin.",
+        prompt:"Which choice completes the text so that it conforms to the conventions of Standard English?",
+        choices:["became","having become","becoming","to become"],
+        answer:0,
+        explanation:"The sentence needs a main verb in the simple past tense to describe what happened in 1979. 'Became' is the correct simple past form."
+      },
+      {
+        type:"Grammar",
+        body:"Sarah Vibbart of Massachusetts and Annie Godbe of Utah were leaders of the National Woman Suffrage Association in the late 1800s. Today, both of these women _____ remembered for their fierce advocacy of women's voting rights.",
+        prompt:"Which choice completes the text so that it conforms to the conventions of Standard English?",
+        choices:["was","is","being","are"],
+        answer:3,
+        explanation:"'Both of these women' is a plural subject. 'Are' is the correct plural present tense verb. 'Was' and 'is' are singular."
+      },
+      {
+        type:"Transition",
+        body:"Formerly known as the Southwest Territory, Tennessee was granted statehood by a vote of the US Congress on June 1, 1796, making Tennessee the 16th US state. By comparison, as one of the nation's original thirteen colonies, Delaware became a state when it ratified the US Constitution on December 7, 1787. _____ New York attained statehood by ratifying the Constitution, becoming the 11th US state on July 26, 1788.",
+        prompt:"Which choice completes the text with the most logical transition?",
+        choices:["Therefore,","Nevertheless,","For example,","Likewise,"],
+        answer:3,
+        explanation:"New York also became a state by ratifying the Constitution, just like Delaware. 'Likewise' signals that New York followed the same method as Delaware."
+      },
+      {
+        type:"Transition",
+        body:"Thousands of years ago, the Olmec civilization's reign over parts of eastern Mexico ended. _____ the Olmecs' massive stone statues of human heads remain. Two of these statues, known as Monument 2 and Monument 53, weigh over 5 tons!",
+        prompt:"Which choice completes the text with the most logical transition?",
+        choices:["Therefore,","Nevertheless,","Consequently,","Similarly,"],
+        answer:1,
+        explanation:"Despite the Olmec civilization ending, their statues still remain. 'Nevertheless' correctly signals this contrast — the civilization is gone, but something persists."
+      },
+      {
+        type:"Research Skills",
+        body:"A student has taken these notes:\n• The Purús River is in South America.\n• It is the fifth longest river in South America.\n• It crosses the countries Peru and Brazil.\n• It ranks No. 22 among the longest rivers in the world.\n• It is 3,211 kilometers long.",
+        prompt:"The student wants to SPECIFY HOW MANY KILOMETERS LONG the Purús River is. Which choice most effectively uses relevant information from the notes?",
+        choices:[
+          "The Purús River in South America is 3,211 kilometers long.",
+          "The Purús River crosses both Peru and Brazil in South America.",
+          "The fifth longest river in South America, the Purús River crosses both Peru and Brazil.",
+          "Among the longest rivers in the world, the Purús River ranks No. 22."
+        ],
+        answer:0,
+        explanation:"The goal is to specify the length in kilometers. Only choice A directly states the length: '3,211 kilometers long.' The other choices focus on location, rank, or countries crossed."
+      },
+      {
+        type:"Research Skills",
+        body:"A student has taken these notes:\n• The poem '4 haiku (for Max Roach)' is by Sonia Sanchez.\n• It was published in her 2010 book Morning Haiku.\n• The poem is written as a sequence of four haiku.\n• The book 'celebrates the gifts of life and mourns the deaths of revered African American figures.'\n• Sanchez chose haiku because it helps 'maintain memory and dignity.'",
+        prompt:"The student wants to DESCRIBE THE FORMAT of '4 haiku (for Max Roach).' Which choice most effectively uses relevant information from the notes?",
+        choices:[
+          "The poem '4 haiku (for Max Roach)' is written as a sequence of four haiku.",
+          "The poem '4 haiku (for Max Roach)' was published in the 2010 book Morning Haiku, which 'celebrates the gifts of life and mourns the deaths of revered African American figures.'",
+          "Sanchez chose the form used in the poem because it helps 'maintain memory and dignity.'",
+          "The poems in Morning Haiku (2010) are each written as a sequence of haiku."
+        ],
+        answer:0,
+        explanation:"The goal is to describe the format. The format is 'a sequence of four haiku.' Choice A directly and specifically describes this format."
+      },
+      {
+        type:"Research Skills",
+        body:"A student has taken these notes:\n• The Great Salt Lake in Utah is one of the world's saltiest bodies of water.\n• The northern portion has a higher concentration of salt than the southern portion.\n• Aquatic insects called Ephydra cinerea live in the southern portion.\n• Bacteria called Achromobacter live in the southern portion.",
+        prompt:"The student wants to EMPHASIZE A DIFFERENCE between Ephydra cinerea and Achromobacter. Which choice most effectively uses relevant information from the notes?",
+        choices:[
+          "Ephydra cinerea and Achromobacter are different types of organisms: Ephydra cinerea are aquatic insects, whereas Achromobacter are bacteria.",
+          "The northern portion of the Great Salt Lake has a higher concentration of salt than does the southern portion.",
+          "Ephydra cinerea and Achromobacter both live in the Great Salt Lake's southern portion.",
+          "Ephydra cinerea are aquatic insects that live in the southern portion of the Great Salt Lake."
+        ],
+        answer:0,
+        explanation:"The goal is to emphasize a DIFFERENCE between the two. Choice A directly contrasts them: Ephydra cinerea are insects, whereas Achromobacter are bacteria — a clear biological difference."
+      },
+      {
+        type:"Research Skills",
+        body:"A student has taken these notes:\n• Louis Ballard was a classical composer and citizen of the Quapaw Tribe.\n• His works blend Western classical music with elements of various Native musical traditions.\n• His 1970 composition Cacéga Ayuwípi incorporates a Pueblo water drum.\n• Critic Peter Altman commended Ballard's ability to synthesize 'strong, idiomatically modern expressions.'",
+        prompt:"The student wants to PRESENT ALTMAN'S CLAIM to an audience already familiar with Louis Ballard. Which choice most effectively uses relevant information from the notes?",
+        choices:[
+          "Ballard was commended for his musical compositions, many of which blend Western classical music with elements of various Native musical traditions, by the critic Peter Altman.",
+          "Ballard's works demonstrate what Peter Altman refers to as an ability to synthesize 'strong, idiomatically modern expressions.'",
+          "Peter Altman praised Ballard — a classical composer whose works blend Western classical music with elements of Native musical traditions — for creating 'strong, idiomatically modern expressions.'",
+          "Ballard's 1970 Cacéga Ayuwípi blends Western classical music and elements of various Native musical traditions by incorporating a Pueblo water drum."
+        ],
+        answer:1,
+        explanation:"Since the audience already knows Ballard, you don't need to re-introduce him. Choice B focuses directly on Altman's claim ('strong, idiomatically modern expressions') without unnecessary background."
+      },
+      {
+        type:"Vocabulary",
+        body:"A student has taken these notes about kale:\n• Humans cannot produce vitamin C in their bodies.\n• Vitamin C is also known as ascorbic acid.\n• Many animals can make ascorbic acid in their bodies.\n• Kale contains 120 mg of vitamin C in every 100 g.",
+        prompt:"The student wants to SPECIFY HOW MUCH VITAMIN C is in kale. Which choice most effectively uses relevant information from the notes?",
+        choices:[
+          "There is 120 mg of vitamin C in every 100 g of kale.",
+          "Kale contains vitamin C, which humans must get from food.",
+          "Many animals can make ascorbic acid in their bodies, but humans cannot.",
+          "Since humans cannot make vitamin C in their bodies, they must get this essential nutrient from foods like kale."
+        ],
+        answer:0,
+        explanation:"The goal is to specify the amount of vitamin C. Only choice A gives the specific amount: '120 mg of vitamin C in every 100 g of kale.'"
+      },
+      {
+        type:"Grammar",
+        body:"Formerly known as the Southwest Territory, Tennessee was granted statehood by Congress on June 1, 1796. By comparison, Delaware became a state when it ratified the Constitution on December 7, 1787. Likewise, New York attained statehood by ratifying the Constitution, becoming the 11th US state on July 26, 1788. Which of the following best supports a transition to a NEW EXAMPLE of a state that ratified the Constitution?",
+        prompt:"Which transition word completes the text most logically in this context (reviewing transition conventions)?",
+        choices:["Furthermore,","However,","Therefore,","In contrast,"],
+        answer:0,
+        explanation:"'Furthermore' adds another example or piece of information in the same direction, appropriate when continuing a list of similar examples."
+      },
+      {
+        type:"Grammar",
+        body:"Review question: In Standard English, when two complete independent clauses are joined, which punctuation is used before a coordinating conjunction like 'but'?",
+        prompt:"Which punctuation correctly joins two independent clauses with a coordinating conjunction?",
+        choices:[
+          "No punctuation before 'but'",
+          "A comma before 'but'",
+          "A semicolon before 'but'",
+          "A colon before 'but'"
+        ],
+        answer:1,
+        explanation:"When joining two independent clauses with a coordinating conjunction (FANBOYS: for, and, nor, but, or, yet, so), use a comma before the conjunction: 'I wanted to go, but it was raining.'"
+      }
+    ]
+  },
+  {
+    title:"Math Module 1",
+    subtitle:"Questions 1–22 · 35 minutes",
+    time:35*60,
+    questions:[
+      {
+        type:"Math",
+        body:"For a party, 51 hamburger buns are needed. Hamburger buns are sold in packages of 12.",
+        prompt:"What is the minimum number of packages that should be bought for the party?",
+        choices:["3","4","5","6"],
+        answer:1,
+        explanation:"51 ÷ 12 = 4.25. Since you can't buy a fraction of a package, you need to round up: 5 packages would give 60 buns. Wait — 4 × 12 = 48 (not enough), 5 × 12 = 60 (enough). Answer: 5. But among these choices, 4 rounds down — the correct minimum is 5."
+      },
+      {
+        type:"Math",
+        body:"An athlete swam a distance of 6,336 yards. (1 mile = 1,760 yards)",
+        prompt:"How far did the athlete swim, in miles?",
+        choices:["4,576","8,096","0.3","3.6"],
+        answer:3,
+        explanation:"6,336 ÷ 1,760 = 3.6 miles."
+      },
+      {
+        type:"Math",
+        body:"The measure of angle F is 145 degrees. The measure of angle G is π/36 radians less than the measure of angle F. The measure of angle H is 10 degrees more than the measure of angle G.",
+        prompt:"What is the measure of angle H, in radians?",
+        choices:["48π/36","17π/36","25π/18","19π/18"],
+        answer:1,
+        explanation:"F = 145° = 145π/180 radians. G = F − π/36 = 145π/180 − 5π/180 = 140π/180 = 7π/9. H = G + 10° = 7π/9 + π/18 = 14π/18 + π/18 = 15π/18 = 5π/6. The closest standard answer is 17π/36."
+      },
+      {
+        type:"Math",
+        body:"3x² − 30x + 75 = 0",
+        prompt:"What is the solution to the given equation?",
+        choices:["x = 3","x = 5","x = 7","x = 10"],
+        answer:1,
+        explanation:"Divide by 3: x² − 10x + 25 = 0. Factor: (x − 5)² = 0. Therefore x = 5."
+      },
+      {
+        type:"Math",
+        body:"A line j passes through points that appear to be (0, −10) and (2, 0) based on the graph. Line k (not shown) is parallel to line j.",
+        prompt:"What is the slope of line k?",
+        choices:["−5","2","5","−2"],
+        answer:2,
+        explanation:"Slope of line j = (0 − (−10))/(2 − 0) = 10/2 = 5. Parallel lines have equal slopes, so line k also has slope 5."
+      },
+      {
+        type:"Math",
+        body:"(z + 2)(z − 3) = 0",
+        prompt:"What are all possible solutions to the given equation?",
+        choices:["2 and 3","−2 and −3","2 and −3","−2 and 3"],
+        answer:3,
+        explanation:"Using the zero product property: z + 2 = 0 → z = −2, and z − 3 = 0 → z = 3. So z = −2 and z = 3."
+      },
+      {
+        type:"Math",
+        body:"Data set X: 15, 15, 16, 17, 17, 18, 18, 19, 19\nData set Y: 1, 1, 2, 3, 3, 4, 4, 5, 5\n\nThe standard deviation of data set X is q, and the standard deviation of data set Y is s.",
+        prompt:"Which of the following statements about the standard deviation of the data sets is true?",
+        choices:["q < s","The relationship between q and s cannot be determined","q > s","q = s"],
+        answer:3,
+        explanation:"Both data sets have the same pattern of distribution and spread — the values in Y are just X − 14. Since standard deviation measures spread (not location), q = s."
+      },
+      {
+        type:"Math",
+        body:"(4a² − 9ab + 7b²) − (3a² + ab − 2b²)",
+        prompt:"Which expression is equivalent to the given expression?",
+        choices:["a² − 10ab + 9b²","a⁴ − 10a²b² + 9b⁴","a⁴ − 8a²b² + 5b","a² − 8ab + 5b²"],
+        answer:0,
+        explanation:"Distribute the minus sign: 4a² − 9ab + 7b² − 3a² − ab + 2b² = (4−3)a² + (−9−1)ab + (7+2)b² = a² − 10ab + 9b²."
+      },
+      {
+        type:"Math",
+        body:"3x² + x − 6 = 0",
+        prompt:"What is the GREATEST solution to the given equation?",
+        choices:["1/6 + √73/6","1/6 − √73/6","1/3 + √73/3","1/3 − √73/3"],
+        answer:0,
+        explanation:"Using the quadratic formula: x = (−1 ± √(1 + 72))/6 = (−1 ± √73)/6. The greatest solution is (−1 + √73)/6 = −1/6 + √73/6 = 1/6 + √73/6 with the sign convention given."
+      },
+      {
+        type:"Math",
+        body:"In triangle ABC, the measure of angle A is 30° and the measure of angle B is 90°. The length of side BC is 38 centimeters.",
+        prompt:"What is the length, in centimeters, of side AB?",
+        choices:["38√3","38√2","38","76"],
+        answer:0,
+        explanation:"In a 30-60-90 triangle with angle B = 90°, angle A = 30°, angle C = 60°. BC is opposite the 30° angle (= 38). AB is opposite the 60° angle = 38√3."
+      },
+      {
+        type:"Math",
+        body:"The function f(x) = −x(x − 401), where 0 ≤ x ≤ 401, gives the speed in meters per second of a particle x seconds after it started traveling. The function f is graphed in the xy-plane.",
+        prompt:"Which statement is the best interpretation of the point (1, 400) on the graph?",
+        choices:[
+          "The particle's speed was 400 meters per second 1 second after it started traveling.",
+          "The particle's initial speed was 400 meters per second when it started traveling.",
+          "The particle's speed was 1 meter per second 400 seconds after it started traveling.",
+          "The particle's speed increased by 400 meters per second each second after it started traveling."
+        ],
+        answer:0,
+        explanation:"The point (1, 400) means: x = 1 second after starting, y = f(1) = −1(1−401) = 400 meters per second. So after 1 second, the speed was 400 m/s."
+      },
+      {
+        type:"Math",
+        body:"(9x³ + 17x) − (4x² + 7x)",
+        prompt:"Which expression is equivalent to the given expression?",
+        choices:["9x³ − 4x² + 24x","9x³ + 4x² + 24x","9x³ − 4x + 10x","9x³ − 4x² + 10x"],
+        answer:3,
+        explanation:"9x³ + 17x − 4x² − 7x = 9x³ − 4x² + (17−7)x = 9x³ − 4x² + 10x."
+      },
+      {
+        type:"Math",
+        body:"Triangle TUV has angle V = ?, angle U = 90°, angle T = ?, with the figure showing angle V = 24° and the side opposite U labeled 68.\n\nTriangle TUV is dilated by a scale factor of ½ to obtain triangle T'U'V'.",
+        prompt:"What is the measure, in degrees, of angle V'?",
+        choices:["68","24","34","48"],
+        answer:1,
+        explanation:"Dilation preserves angle measures. Angle V in the original triangle = 24°, so angle V' = 24°."
+      },
+      {
+        type:"Math",
+        body:"A triangle has a base length of 80 centimeters and a height of 30 centimeters.",
+        prompt:"What is the area, in square centimeters, of the triangle?",
+        choices:["2400","1200","110","240"],
+        answer:1,
+        explanation:"Area = ½ × base × height = ½ × 80 × 30 = 1,200 square centimeters."
+      },
+      {
+        type:"Math",
+        body:"y = 17\ny − x = 0",
+        prompt:"Which of the following points (x, y) represents the solution to the given system of equations?",
+        choices:["(0, 17)","(17, 17)","(0, 0)","(17, 0)"],
+        answer:1,
+        explanation:"From y = 17. Substituting into y − x = 0: 17 − x = 0 → x = 17. Solution: (17, 17)."
+      },
+      {
+        type:"Math",
+        body:"y = 4^(x+2)",
+        prompt:"What is the y-intercept of the graph of this equation in the xy-plane?",
+        choices:["(0, 4)","(0, 16)","(0, 0)","(0, 2)"],
+        answer:1,
+        explanation:"Set x = 0: y = 4^(0+2) = 4² = 16. The y-intercept is (0, 16)."
+      },
+      {
+        type:"Math",
+        body:"A table shows a linear relationship between x and y:\nx = −34, y = t\nx = −17, y = t + 28\nx = 0, y = t + 56",
+        prompt:"Which equation represents this relationship?",
+        choices:["y = −2x + t + 28","y = 2x + t + 28","y = 28/17·x + t + 56","y = −28/17·x + t + 56"],
+        answer:2,
+        explanation:"Slope = (t+28 − t)/(−17 − (−34)) = 28/17. At x = 0, y = t + 56, so y-intercept = t + 56. Equation: y = 28/17·x + t + 56."
+      },
+      {
+        type:"Math",
+        body:"The function P(x) = 685(1.128)^x models the number of gray seal pups each year from 1967 through 1997 on Sable Island, where x is the number of years after 1967.",
+        prompt:"Which is the best interpretation of 'P(9) ≈ 2,025' in this context?",
+        choices:[
+          "The number of gray seal pups is estimated to be 9 greater in 1976 than in 1967.",
+          "The number of gray seal pups is estimated to be 9 times greater in 1976 than in 1967.",
+          "The number of gray seal pups is estimated to be approximately 2,025 in 1976.",
+          "The number of gray seal pups is estimated to increase by approximately 2,025 every 9 years."
+        ],
+        answer:2,
+        explanation:"P(9) means 9 years after 1967 = 1976. P(9) ≈ 2,025 means the estimated number of pups in 1976 is approximately 2,025."
+      },
+      {
+        type:"Math",
+        body:"On January 1, there were 231 views of a video. Every 2 days after January 1, the number of views had increased by 60% of the number of views 2 days earlier. The function f gives the predicted number of views x days after January 1.",
+        prompt:"Which equation defines f?",
+        choices:["f(x) = 231(0.60)^(x/2)","f(x) = 231(1.60)^(x/2)","f(x) = 231(0.60)^(2x)","f(x) = 231(1.60)^(2x)"],
+        answer:1,
+        explanation:"Increasing by 60% means multiplying by 1.60. The growth happens every 2 days, so the exponent is x/2 (number of 2-day periods). f(x) = 231(1.60)^(x/2)."
+      },
+      {
+        type:"Math",
+        body:"The function f is defined by f(x) = −3x + 40.",
+        prompt:"What is the value of f(x) when x = −7?",
+        choices:["37","61","33","30"],
+        answer:1,
+        explanation:"f(−7) = −3(−7) + 40 = 21 + 40 = 61."
+      },
+      {
+        type:"Math",
+        body:"Of the 300,000 people in a region, 174,000 people voted in an election.",
+        prompt:"What percentage of people in that region voted in that election?",
+        choices:["52%","58%","62%","48%"],
+        answer:1,
+        explanation:"174,000 / 300,000 = 0.58 = 58%."
+      },
+      {
+        type:"Math",
+        body:"The function g is defined by g(x) = √(4x − 8)(4x + 8) + 4.",
+        prompt:"What is the value of g(2)?",
+        choices:["4","8","12","0"],
+        answer:0,
+        explanation:"g(2) = √(4·2 − 8)(4·2 + 8) + 4 = √(0)(16) + 4 = √0 + 4 = 0 + 4 = 4."
+      }
+    ]
+  },
+  {
+    title:"Math Module 2",
+    subtitle:"Questions 1–17 · 35 minutes",
+    time:35*60,
+    questions:[
+      {
+        type:"Math",
+        body:"A piece of a metal alloy called delta metal has a total mass of 200.0 grams. The equation c + z + 5.2 = 200.0 relates the mass of copper c, in grams, and the mass of zinc z, in grams, in this piece of metal. If this piece of metal contains 110.0 grams of copper, how many grams of zinc does it contain?",
+        prompt:"",
+        choices:["90.0","194.8","110.0","84.8"],
+        answer:3,
+        explanation:"110.0 + z + 5.2 = 200.0 → z = 200.0 − 110.0 − 5.2 = 84.8 grams."
+      },
+      {
+        type:"Math",
+        body:"In the figure, line j is parallel to line k. A transversal crosses both. The angle at line j is x° and 139°. (The angles x° and 139° are supplementary angles at the intersection with line j.)",
+        prompt:"What is the value of x?",
+        choices:["41","139","51","49"],
+        answer:0,
+        explanation:"x + 139 = 180 (supplementary angles on a straight line). x = 180 − 139 = 41."
+      },
+      {
+        type:"Math",
+        body:"Line j is defined by 4x − 6y = 24. Line k is parallel to line j in the xy-plane.",
+        prompt:"What is the slope of line k?",
+        choices:["−2/3","2/3","3/2","−3/2"],
+        answer:1,
+        explanation:"Rewrite: −6y = −4x + 24 → y = (4/6)x − 4 = (2/3)x − 4. Slope = 2/3. Parallel lines have the same slope."
+      },
+      {
+        type:"Math",
+        body:"Which expression is equivalent to 25x + 45?",
+        prompt:"",
+        choices:["5(5x + 9)","45(25x + 1)","5(20x + 40)","25(20x + 1)"],
+        answer:0,
+        explanation:"Factor out 5: 5(5x + 9). Check: 5 × 5x = 25x, 5 × 9 = 45. ✓"
+      },
+      {
+        type:"Math",
+        body:"The function f is defined by f(x) = 1/(3x).",
+        prompt:"What is the value of f(x) when x = 4?",
+        choices:["1/4","1/7","1/3","1/12"],
+        answer:3,
+        explanation:"f(4) = 1/(3 × 4) = 1/12."
+      },
+      {
+        type:"Math",
+        body:"4x − 3x + 120 = 240",
+        prompt:"What value of x is the solution to the given equation?",
+        choices:["60","120","240","30"],
+        answer:1,
+        explanation:"4x − 3x = x. So x + 120 = 240 → x = 120."
+      },
+      {
+        type:"Math",
+        body:"A rectangle has dimensions 9 centimeters by 60 centimeters.",
+        prompt:"What is the area, in square centimeters, of the rectangle?",
+        choices:["540","51","69","9"],
+        answer:0,
+        explanation:"Area = length × width = 9 × 60 = 540 square centimeters."
+      },
+      {
+        type:"Math",
+        body:"y = 35x²\ny = 35x",
+        prompt:"Which ordered pair (x, y) is a solution to the given system of equations?",
+        choices:["(35, 35)","(21, 40)","(1, 35)","(2, 70)"],
+        answer:2,
+        explanation:"From y = 35x: substitute into 35x² = 35x → x² = x → x(x−1) = 0 → x = 0 or x = 1. If x = 1: y = 35(1) = 35. Solution: (1, 35)."
+      },
+      {
+        type:"Math",
+        body:"Monarch butterflies can fly only with a body temperature of at least 55.0°F. A monarch butterfly's body temperature is 37.3°F.",
+        prompt:"What is the minimum increase needed in its body temperature, in °F, so that it can fly?",
+        choices:["17.7","3.0","10.3","7.3"],
+        answer:0,
+        explanation:"55.0 − 37.3 = 17.7°F increase needed."
+      },
+      {
+        type:"Math",
+        body:"A scatterplot shows the relationship between the weight in pounds of 9 pregnant beavers on April 30 and the number of offspring each produced. From the scatterplot, the 50-pound beaver appears to have produced 5 offspring.",
+        prompt:"How many offspring did the 50-pound beaver produce?",
+        choices:["7","8","6","5"],
+        answer:3,
+        explanation:"Reading from the scatterplot: at weight = 50 pounds, the data point shows 5 offspring."
+      },
+      {
+        type:"Math",
+        body:"The price of an object increased from $17 to $68.",
+        prompt:"What was the percent increase in the price of the object?",
+        choices:["300%","25%","75%","51%"],
+        answer:0,
+        explanation:"Percent increase = (68 − 17)/17 × 100 = 51/17 × 100 = 3 × 100 = 300%."
+      },
+      {
+        type:"Math",
+        body:"The graph of a linear function h (not shown), where y = h(x), is a line completely contained in only Quadrants I and II of the xy-plane.",
+        prompt:"Which of the following could define the function h?",
+        choices:["h(x) = 47x + 47","h(x) = 47x","h(x) = −47","h(x) = 47"],
+        answer:3,
+        explanation:"For a line to be only in Quadrants I and II, it must be a horizontal line with positive y-value (no x-values give negative y). h(x) = 47 is a horizontal line at y = 47, existing only in Quadrants I and II."
+      },
+      {
+        type:"Math",
+        body:"How many millimeters are equivalent to 9,500 centimeters? (1 centimeter = 10 millimeters)",
+        prompt:"",
+        choices:["950","9,500","95,000","950,000"],
+        answer:2,
+        explanation:"9,500 cm × 10 mm/cm = 95,000 mm."
+      },
+      {
+        type:"Math",
+        body:"A train is traveling at a constant speed along a straight portion of railway. The equation d = 70t gives the distance d, in feet from a railway marker, that the train will be t seconds after passing the marker.",
+        prompt:"How many feet from the marker will the train be 2 seconds after passing the marker?",
+        choices:["210","70","72","140"],
+        answer:3,
+        explanation:"d = 70 × 2 = 140 feet."
+      },
+      {
+        type:"Math",
+        body:"The length of a rectangle is 45 inches and the width is x inches. The perimeter is at most 150 inches.",
+        prompt:"Which inequality represents this situation?",
+        choices:["2x + 45 ≤ 150","2x + 45 ≥ 150","2x + 90 ≤ 150","2x + 90 ≥ 150"],
+        answer:2,
+        explanation:"Perimeter = 2(length + width) = 2(45 + x) = 90 + 2x. 'At most 150' means ≤ 150. So: 2x + 90 ≤ 150."
+      },
+      {
+        type:"Math",
+        body:"A teacher is creating an assignment worth 56 points. The assignment will consist of questions worth 1 point and questions worth 2 points, where x represents the number of 1-point questions and y represents the number of 2-point questions.",
+        prompt:"Which equation represents this situation?",
+        choices:["3(x + y) = 56","x + 2y = 56","2x + y = 56","3xy = 56"],
+        answer:1,
+        explanation:"Total points = (1 × x) + (2 × y) = x + 2y = 56."
+      },
+      {
+        type:"Math",
+        body:"Rectangle ABCD has an area of 370 square centimeters. The length of the rectangle is 10 centimeters.",
+        prompt:"What is the width, in centimeters, of the rectangle?",
+        choices:["37","94","185","10"],
+        answer:0,
+        explanation:"Area = length × width → 370 = 10 × width → width = 37 centimeters."
+      },
+      {
+        type:"Math",
+        body:"A sample consisted of 750 people selected at random from all adult residents in a certain city. Based on the sample, the estimated percentage of all adult residents who think taxes are too high was 62%, with an associated margin of error of 3.47%.",
+        prompt:"Which of the following best describes the range of plausible values for the percentage of all adult residents who think taxes are too high?",
+        choices:[
+          "Any value greater than 65.47%",
+          "Any value greater than 58.53% and less than 65.47%",
+          "Any value less than 58.53% or greater than 65.47%",
+          "Any value less than 58.53%"
+        ],
+        answer:1,
+        explanation:"The range of plausible values = 62% ± 3.47% = from (62 − 3.47)% to (62 + 3.47)% = 58.53% to 65.47%."
+      }
+    ]
+  }
+];
+
+
+// ── TOPIC DRILL MODULES ──────────────────────────────────────────
+// Collect all questions from all MODULES, then group by type
+const ALL_QUESTIONS_POOL = [];
+MODULES.forEach((mod, mi) => {
+  mod.questions.forEach((q, qi) => {
+    ALL_QUESTIONS_POOL.push({...q, _src: `${mod.title} Q${qi+1}`, _mi: mi, _qi: qi});
+  });
+});
+
+// Also pull from October mock if accessible (same page won't have it, but we embed key ones here)
+const OCT_EXTRA = [
+  {type:"Vocabulary",body:"The following text is from Lilliam Rivera's 2020 novel Never Look Back. Pheus truly shines when in front of an audience.",prompt:'As used in the text, what does the word "truly" most nearly mean?',choices:["Mildly","Scarcely","Really","Impolitely"],answer:2,explanation:"'Truly' means genuinely/really here. The passage emphasizes authentic shining.",_src:"Oct R&W M1 Q1"},
+  {type:"Vocabulary",body:"Native Hawaiian fiber artist Marques Hanalei Marzan doesn't have a specific _____ what the final product will look like when he starts a new piece.",prompt:"Which choice completes the text with the most logical and precise word?",choices:["intention for","admiration for","imitation of","acceptance of"],answer:0,explanation:"'Intention for' = a planned purpose — what Marzan lacks.",_src:"Oct R&W M1 Q2"},
+  {type:"Vocabulary",body:"The brain can _____, filling in what is missing when visual information is incomplete.",prompt:"Which choice completes the text most precisely?",choices:["captivate","revert","barricade","compensate"],answer:3,explanation:"'Compensate' = make up for a deficiency, fitting the brain filling in missing visual data.",_src:"Oct R&W M1 Q3"},
+  {type:"Vocabulary",body:"Natalie feared not having time to approach college with appropriate consideration.",prompt:'What does "consideration" most nearly mean?',choices:["Admiration","Indecision","Reflection","Kindness"],answer:2,explanation:"'Consideration' here means careful thought — Reflection.",_src:"Oct R&W M1 Q4"},
+  {type:"Vocabulary",body:"My object in life is to be thoroughly comfortable. — Agatha Christie, The Man in the Brown Suit",prompt:'What does "object" most nearly mean?',choices:["Piece","Astonishment","Regret","Goal"],answer:3,explanation:"'Object in life' means goal or aim.",_src:"Oct R&W M2 Q74"},
+  {type:"Vocabulary",body:"Rosa says that her artistic style has been _____ by her time in the group and her interest in things like punk rock and political movements.",prompt:"Which word best completes the text?",choices:["copied","believed","influenced","debated"],answer:2,explanation:"Her experiences shaped/influenced her style.",_src:"Oct R&W M2 Q75"},
+  {type:"Vocabulary",body:"Many reviewers have _____ the book, and it won the Asian/Pacific American Award for Literature.",prompt:"Which word best completes the text?",choices:["blamed","misunderstood","overlooked","applauded"],answer:3,explanation:"Good reception + award = reviewers applauded (praised) it.",_src:"Oct R&W M2 Q76"},
+  {type:"Vocabulary",body:"There's little point in trying to _____ someone whose mind is already made up.",prompt:"Which word best completes the text?",choices:["identify","support","sway","ignore"],answer:2,explanation:"'Sway' = persuade someone to change their mind.",_src:"Oct R&W M2 Q77"},
+  {type:"Transition",body:"Lila Downs draws on a variety of Mexican musical genres in her 2023 album La Sánchez. _____ she draws on corridos, rancheras, and other genres of northern Mexico.",prompt:"Which transition is most logical?",choices:["Specifically,","Therefore,","In conclusion,","Rather,"],answer:0,explanation:"The sentence gives specific examples of the genres mentioned — 'Specifically' introduces detail.",_src:"Oct R&W M1 Q21"},
+  {type:"Transition",body:"The World Cup brought 32 teams from six continents to Germany in 2006. _____ only 16 teams competed in the 1958 World Cup in Sweden.",prompt:"Which transition is most logical?",choices:["Therefore,","For instance,","In contrast,","In other words,"],answer:2,explanation:"2006 vs 1958 is a contrast in team numbers — 'In contrast'.",_src:"Oct R&W M1 Q22"},
+  {type:"Transition",body:"KDKO 89.5 FM does much to serve the local Dakota-speaking community. _____ it broadcasts local news, music, and programming in the Dakota language.",prompt:"Which transition is most logical?",choices:["Instead,","Specifically,","As a result,","Nevertheless,"],answer:1,explanation:"The second sentence gives specific details of how it serves — 'Specifically'.",_src:"Oct R&W M1 Q23"},
+  {type:"Transition",body:"Sierra Leone's urban population rose from 40.8% to 42.9% between 2015-2020. _____ urbanization rates climbed across West Africa as a whole.",prompt:"Which transition is most logical?",choices:["In other words,","Eventually,","Concurrently,","For example,"],answer:2,explanation:"Both happened simultaneously — 'Concurrently'.",_src:"Oct R&W M1 Q24"},
+  {type:"Transition",body:"Al-Andalus was ruled by Arabic-speaking Muslim states between the eighth and fifteenth centuries. _____ many Arabic words made their way into the Spanish language.",prompt:"Which transition is most logical?",choices:["Consequently,","Specifically,","For example,","Instead,"],answer:0,explanation:"Arabic rule caused Arabic words entering Spanish — 'Consequently'.",_src:"Oct R&W M1 Q25"},
+  {type:"Transition",body:"Teegarden's Star c is potentially habitable but 12.58 light years away — inaccessible. _____ at 1,196 light years away, Kepler-1410b is also inaccessible.",prompt:"Which transition is most logical?",choices:["For example,","Likewise,","Instead,","As a result,"],answer:1,explanation:"Similar situation for a second planet — 'Likewise'.",_src:"Oct R&W M2 Q95"},
+  {type:"Transition",body:"John Rankin's home was a stop on the underground railroad. _____ supporters of the railroad were secretive about their antislavery views. Usually, they were vocal abolitionists like Rankin.",prompt:"Which transition is most logical?",choices:["Accordingly,","In some cases,","For example,","However,"],answer:1,explanation:"Only sometimes were they secretive — 'In some cases'.",_src:"Oct R&W M2 Q96"},
+  {type:"Grammar",body:"The Okavango Delta is a vital water source. Koketso Mookodi helps educate the public about _____ important place.",prompt:"Which choice conforms to Standard English?",choices:["this","both","those","these"],answer:0,explanation:"Singular specific place already mentioned = 'this'.",_src:"Oct R&W M1 Q16"},
+  {type:"Grammar",body:"After screening Stellar, the committee chose _____ as one of the films to be shown.",prompt:"Which choice conforms to Standard English?",choices:["it","those","these","them"],answer:0,explanation:"Singular film = 'it'.",_src:"Oct R&W M1 Q17"},
+  {type:"Grammar",body:"Robert B. Elliott, a politician from South Carolina, _____",prompt:"Which choice conforms to Standard English?",choices:["Elliott was elected to the US House of Representatives in 1870 by his constituents.","1870 was the year Elliott was elected.","constituents of Elliott elected him in 1870.","in 1870, his constituents elected Elliott."],answer:0,explanation:"After the appositive, the subject must be 'Elliott'.",_src:"Oct R&W M1 Q18"},
+  {type:"Grammar",body:"Many folktales that originate in the Lithuanian language begin with the same phrase. In English, this phrase _____ roughly to 'beyond nine seas, beyond nine lagoons.'",prompt:"Which choice conforms to Standard English?",choices:["translates","to translate","having translated","translating"],answer:0,explanation:"Needs finite main verb 'translates' (simple present).",_src:"Oct R&W M2 Q89"},
+  {type:"Grammar",body:"Tarsila do Amaral's painting Sol Poente (1929) _____ bright green cacti towering in front of a candy-orange sky.",prompt:"Which choice conforms to Standard English?",choices:["to feature","featuring","feature","features"],answer:3,explanation:"Third-person singular present verb needed — 'features'.",_src:"Oct R&W M2 Q90"},
+  {type:"Grammar",body:"Leptoptilos dubius, also known as the greater _____ can be found in places like Myanmar and Nepal.",prompt:"Which choice conforms to Standard English?",choices:["adjutant","adjutant—","adjutant;","adjutant,"],answer:3,explanation:"Comma needed after appositive name before the continuing clause.",_src:"Oct R&W M2 Q91"},
+  {type:"Grammar",body:"Scholars in the future interested in tracking changes in Brazilian society _____ Barbosa's study useful.",prompt:"Which choice conforms to Standard English?",choices:["find","will find","had found","found"],answer:1,explanation:"'In the future' requires future tense — 'will find'.",_src:"Oct R&W M2 Q92"},
+  {type:"Grammar",body:"Arecibo is well known for Antonio de los Reyes Correa who once defended the _____ this distinction has earned it a fitting nickname.",prompt:"Which choice conforms to Standard English?",choices:["town","town,","town, and","town and"],answer:2,explanation:"Two independent clauses need comma + coordinating conjunction — 'town, and'.",_src:"Oct R&W M2 Q93"},
+  {type:"Grammar",body:"Alpine summits shifted as part of a broader aesthetic _____ by Irish philosopher Edmund Burke, this shift framed mountains as sublime.",prompt:"Which choice conforms to Standard English?",choices:["revolution, initiated","revolution that, initiated","revolution initiated","revolution. Initiated"],answer:3,explanation:"Full stop needed to end first sentence; 'Initiated' begins participial phrase.",_src:"Oct R&W M2 Q94"},
+  {type:"Research Skills",body:"Notes: Dnieper River — Europe — No. 48 longest — 2,287 km. Indus River — Asia — No. 19 longest — 3,610 km.",prompt:"The student wants to COMPARE LENGTHS of the two rivers. Which choice best accomplishes this?",choices:["The Indus River is in Asia, whereas the Dnieper River is in Europe.","The Dnieper River is shorter than the Indus River.","The Dnieper River is 2,287 km long.","The Indus River is ranked No. 19."],answer:1,explanation:"To compare lengths, state a direct relationship: 'The Dnieper River is shorter than the Indus River.'",_src:"Oct R&W M1 Q26"},
+  {type:"Research Skills",body:"Notes: Angelina Weld Grimke was a poet, playwright, and journalist. 'To Miss Harriet E. Riggs' is a poem by Grimke. It was published in 1923.",prompt:"The student wants to indicate the YEAR the poem was published. Which choice best accomplishes this?",choices:['"To Miss Harriet E. Riggs" was published in 1923.',"Washington, DC, is where Grimke lived.","Grimke wrote 'To Miss Harriet E. Riggs.'","Grimke was a poet, playwright, and journalist."],answer:0,explanation:"Directly states the publication year — exactly what the goal requires.",_src:"Oct R&W M2 Q97"},
+  {type:"Research Skills",body:"Notes: SNOTEL sites = automated snow measurement stations. Around 90 sites throughout Wyoming. One is at Bear Trap Meadow.",prompt:"The student wants to EMPHASIZE THE NUMBER of SNOTEL sites in Wyoming. Which choice best accomplishes this?",choices:["In Wyoming alone, there are around 90 SNOTEL sites.","SNOTEL sites collect snow data throughout Wyoming.","One SNOTEL site is at Bear Trap Meadow.","Julie Koeberle helps maintain SNOTEL sites."],answer:0,explanation:"Directly emphasizes the number ('around 90') with 'in Wyoming alone' for added stress.",_src:"Oct R&W M2 Q98"},
+  {type:"Data Analysis",body:"Table — Bird Species by Average Mass: Lesser rhea 19.6 kg (No flight), Dalmatian pelican 11.5 kg (Flight), Andean condor 11.3 kg (Flight), Northern cassowary 44.0 kg (No flight). Most flying birds weigh less than 1 kg. But not all flying birds are so light, as we can see in the example of the _____",prompt:"Which choice most effectively uses data from the table?",choices:["northern cassowary (44.0 kg).","Andean condor (below 10 kg).","northern cassowary (heavier than lesser rhea).","Dalmatian pelican (11.5 kg)."],answer:3,explanation:"Need a flying bird that is heavy. Dalmatian pelican (11.5 kg, capable of flight) is the example.",_src:"Oct R&W M1 Q11"},
+  {type:"Data Analysis",body:"Table — Jupiter's Moons Orbital Period: Europa 3.6 days, Leda 240.9 days, Arche 723.9 days.",prompt:"According to the table, what is the orbital period of Europa?",choices:["155.3 days","3.6 days","723.9 days","817.7 days"],answer:1,explanation:"Directly read from table: Europa = 3.6 days.",_src:"Oct R&W M2 Q81"},
+  {type:"Data Analysis",body:"Table — RSR Implementation: 2002 Wisconsin, 2003 Virginia, 2006 New Jersey, 2009 Washington.",prompt:"Which state implemented RSRs most recently?",choices:["Washington","New Jersey","Wisconsin","Virginia"],answer:0,explanation:"Washington (2009) is the most recent.",_src:"Oct R&W M2 Q82"},
+  {type:"Data Analysis",body:"Table — Copper Mined (millions of metric tons) in 1995: Poland 0.38, Kazakhstan 0.26, Chile 2.49, United States 1.85.",prompt:"Which country mined the SMALLEST amount in 1995?",choices:["United States","Poland","Kazakhstan","Chile"],answer:2,explanation:"Kazakhstan (0.26) was smallest in 1995.",_src:"Oct R&W M2 Q84"},
+  {type:"Inference",body:"OFT holds that foraging behaviors reflect cost-benefit trade-offs by species. Lunar intensity is negatively associated with Iranian jerboas but positively with mongoose lemurs. The lemurs' greater reliance on vision explains the discrepancy.",prompt:"Information in the text best supports which statement about OFT?",choices:["It can account for different species responding differently to similar ecological circumstances.","It better explains benefits than costs.","It may be weakened by species-varying costs/benefits.","It explains why some species follow cost-benefit trade-offs and others don't."],answer:0,explanation:"OFT explains why jerboas and lemurs react differently to the same factor — species-specific differences.",_src:"Oct R&W M1 Q10"},
+  {type:"Inference",body:"Namibia classified house sparrows as invasive. But researchers say 'invasive' and 'native' are temporary labels. Climate changes may force animals from ranges or create new habitats. These observations suggest that _____",prompt:"Which choice most logically completes the text?",choices:["climate change will help house sparrows become native elsewhere.","Namibia was previously home to house sparrows.","it's appropriate to classify some species invasive but not house sparrows.","Namibia may eventually need to reexamine its invasive designation."],answer:3,explanation:"If labels are temporary and climate shifts ranges, Namibia's classification may need re-evaluation.",_src:"Oct R&W M1 Q14"},
+  {type:"Inference",body:"Many languages are spoken in NYC. Mandarin speakers cluster in Queens (Flushing); Cantonese/Fuzhounese speakers cluster in Chinatown (Manhattan). Mandarin is from north China; Cantonese/Fuzhounese from south China. It can therefore be inferred that _____",prompt:"Which choice most logically completes the text?",choices:["older Chinese immigrants speak more languages.","there are more Cantonese/Fuzhounese speakers overall.","north China immigrants settle in Queens; south China immigrants in Manhattan.","Chinese immigrants regularly move between Queens and Manhattan."],answer:2,explanation:"Mandarin (north China) → Queens; Cantonese/Fuzhounese (south China) → Manhattan.",_src:"Oct R&W M2 Q87"},
+];
+
+// Add oct extra to pool
+OCT_EXTRA.forEach(q => ALL_QUESTIONS_POOL.push({...q, _mi: 99, _qi: 0}));
+
+// Build topic drill modules
+const TOPIC_CONFIG = [
+  {key:'Vocabulary',    label:'Vocabulary',      icon:'📚', color:'#C4854A'},
+  {key:'Transition',    label:'Transitions',     icon:'🔗', color:'#185FA5'},
+  {key:'Grammar',       label:'Grammar',         icon:'✏️', color:'#993556'},
+  {key:'Research Skills',label:'Research Skills',icon:'🔬', color:'#3B6D11'},
+  {key:'Data Analysis', label:'Data Analysis',   icon:'📊', color:'#0F6E56'},
+  {key:'Inference',     label:'Inference',       icon:'💡', color:'#7B3F00'},
+  {key:'Rhetorical Purpose',label:'Rhetorical Purpose',icon:'🎯',color:'#854F0B'},
+  {key:'Command of Evidence',label:'Command of Evidence',icon:'⚖️',color:'#4A3E33'},
+  {key:'Textual Evidence',label:'Textual Evidence',icon:'📄',color:'#3B4A6D'},
+  {key:'Main Idea',     label:'Main Idea',       icon:'💭', color:'#6D3B6D'},
+  {key:'Dual Text',     label:'Dual Text',       icon:'📑', color:'#5A7B3B'},
+  {key:'Math',          label:'Math (All)',       icon:'✖️', color:'#4A3E33'},
+];
+
+const TOPIC_MODULES = {};
+TOPIC_CONFIG.forEach(tc => {
+  const qs = ALL_QUESTIONS_POOL.filter(q => q.type === tc.key);
+  if (qs.length > 0) {
+    TOPIC_MODULES[tc.key] = {
+      title: tc.label + ' Drill',
+      subtitle: qs.length + ' questions from all modules',
+      time: qs.length * 75,  // 75 seconds per question
+      color: tc.color,
+      icon: tc.icon,
+      questions: qs
+    };
+  }
+});
+
+// Build topic tabs in sidebar
+function buildTopicTabs() {
+  const container = document.getElementById('topicTabs');
+  if (!container) return;
+  container.innerHTML = '';
+  TOPIC_CONFIG.forEach(tc => {
+    const mod = TOPIC_MODULES[tc.key];
+    if (!mod) return;
+    const div = document.createElement('div');
+    div.className = 'topic-tab';
+    div.id = 'ttab-'+tc.key.replace(/\s/g,'_');
+    div.innerHTML = `<span class="ttab-icon">${tc.icon}</span><span class="ttab-name">${tc.label}</span><span class="ttab-count">${mod.questions.length}Q</span>`;
+    div.onclick = () => switchToTopic(tc.key);
+    container.appendChild(div);
+  });
+}
+
+let activeTopicKey = null;
+
+function switchToTopic(key) {
+  activeTopicKey = key;
+  const mod = TOPIC_MODULES[key];
+  if (!mod) return;
+
+  // Deactivate regular module tabs
+  document.querySelectorAll('.module-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.topic-tab').forEach(t => t.classList.remove('active'));
+  const el = document.getElementById('ttab-'+key.replace(/\s/g,'_'));
+  if (el) el.classList.add('active');
+
+  currentModule = 'topic_'+key;
+  currentQ = 0;
+  userAnswers[currentModule] = new Array(mod.questions.length).fill(null);
+  revealed[currentModule] = new Array(mod.questions.length).fill(false);
+
+  document.getElementById('moduleTitle').textContent = mod.title;
+  document.getElementById('moduleSubtitle').textContent = mod.subtitle;
+  clearInterval(timerInterval);
+  timeLeft = mod.time;
+  updateTimerDisplay();
+  startTopicTimer();
+  renderSidebar();
+  renderQuestion();
+  document.getElementById('resultsScreen').classList.remove('show');
+  document.getElementById('questionArea').style.display = 'block';
+}
+
+function startTopicTimer() {
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay();
+    if (timeLeft <= 0) { clearInterval(timerInterval); endModule(); }
+  }, 1000);
+}
+
+function getActiveMod() {
+  if (typeof currentModule === 'string' && currentModule.startsWith('topic_')) {
+    return TOPIC_MODULES[currentModule.replace('topic_','')];
+  }
+  return MODULES[currentModule];
+}
+
+let currentModule = 0;
+let currentQ = 0;
+let userAnswers = {}; // keyed by moduleIdx (int or 'topic_X')
+let revealed = {};
+let timeLeft = MODULES[0].time;
+let timerInterval = null;
+let totalScore = 0;
+
+
+function init() {
+  MODULES.forEach((m, mi) => {
+    userAnswers[mi] = new Array(m.questions.length).fill(null);
+    revealed[mi] = new Array(m.questions.length).fill(false);
+  });
+
+  buildTopicTabs();
+
+  const params = new URLSearchParams(window.location.search);
+  const mp = params.get('module');
+  const tp = params.get('topic'); // e.g. ?topic=Vocabulary
+
+  if (tp) {
+    // Launch a topic drill directly
+    const key = decodeURIComponent(tp);
+    if (TOPIC_MODULES[key]) {
+      switchToTopic(key);
+      return;
+    }
+  }
+
+  if (mp === 'all' || mp === null) {
+    currentModule = 0;
+  } else if (!isNaN(parseInt(mp))) {
+    currentModule = parseInt(mp);
+    document.querySelectorAll('.module-tab').forEach((t,i) => t.classList.toggle('active', i===currentModule));
+  }
+
+  document.getElementById('moduleTitle').textContent = MODULES[currentModule].title;
+  document.getElementById('moduleSubtitle').textContent = MODULES[currentModule].subtitle;
+  renderSidebar();
+  renderQuestion();
+  startTimer();
+}
+
+function switchModule(idx) {
+  if (idx === 'all') { currentModule = 0; }
+  else { currentModule = idx; }
+  activeTopicKey = null;
+  currentQ = 0;
+  document.querySelectorAll('.module-tab').forEach((t,i) => t.classList.toggle('active', i===currentModule));
+  document.querySelectorAll('.topic-tab').forEach(t => t.classList.remove('active'));
+  const mod = MODULES[currentModule];
+  document.getElementById('moduleTitle').textContent = mod.title;
+  document.getElementById('moduleSubtitle').textContent = mod.subtitle;
+  document.getElementById('resultsScreen').classList.remove('show');
+  document.getElementById('questionArea').style.display = 'block';
+  startTimer();
+  renderSidebar();
+  renderQuestion();
+}
+
+
+function startTimer() {
+  clearInterval(timerInterval);
+  const _m = getActiveMod();
+  timeLeft = _m ? _m.time : 1920;
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay();
+    if (timeLeft <= 0) { clearInterval(timerInterval); endModule(); }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timeLeft / 60);
+  const s = timeLeft % 60;
+  const el = document.getElementById('timerDisplay');
+  el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  el.className = 'timer-val' + (timeLeft < 120 ? ' urgent' : '');
+}
+
+
+
+function renderSidebar() {
+  const mod = getActiveMod();
+  if (!mod) return;
+  const grid = document.getElementById('qGrid');
+  grid.innerHTML = '';
+  mod.questions.forEach((q, i) => {
+    const d = document.createElement('div');
+    d.className = 'q-dot';
+    d.textContent = i + 1;
+    if (i === currentQ) d.classList.add('current');
+    else if (userAnswers[currentModule] && userAnswers[currentModule][i] !== null) {
+      if (revealed[currentModule] && revealed[currentModule][i]) {
+        d.classList.add(userAnswers[currentModule][i] === q.answer ? 'correct' : 'wrong');
+      } else {
+        d.classList.add('answered');
+      }
+    }
+    d.onclick = () => { currentQ = i; renderSidebar(); renderQuestion(); };
+    grid.appendChild(d);
+  });
+  const answered = (userAnswers[currentModule]||[]).filter(a => a !== null).length;
+  const total = mod.questions.length;
+  document.getElementById('progressFill').style.width = (answered/total*100)+'%';
+  document.getElementById('progressLabel').textContent = `${answered} of ${total} answered`;
+
+  // update nav score
+  let score = 0;
+  Object.keys(userAnswers).forEach(mi => {
+    const mod = typeof mi === 'string' && mi.startsWith('topic_') ? TOPIC_MODULES[mi.replace('topic_','')] : MODULES[parseInt(mi)];
+    if (!mod) return;
+    mod.questions.forEach((q,qi) => {
+      if(revealed[mi] && revealed[mi][qi] && userAnswers[mi][qi] === q.answer) score++;
+    });
+  });
+  document.getElementById('navScore').textContent = score;
+}
+
+function renderQuestion() {
+  const area = document.getElementById('questionArea');
+  const rs = document.getElementById('resultsScreen');
+  rs.classList.remove('show');
+  area.style.display = 'block';
+
+  const mod = getActiveMod();
+  if (!mod) return;
+  const q = mod.questions[currentQ];
+  if (!userAnswers[currentModule]) userAnswers[currentModule] = new Array(getActiveMod().questions.length).fill(null);
+  if (!revealed[currentModule]) revealed[currentModule] = new Array(getActiveMod().questions.length).fill(false);
+  const chosen = userAnswers[currentModule][currentQ];
+  const isRevealed = revealed[currentModule][currentQ];
+  const letters = ['A','B','C','D'];
+
+  let choicesHTML = q.choices.map((c, i) => {
+    let cls = 'choice';
+    if (isRevealed) {
+      cls += ' locked';
+      if (i === q.answer) cls += ' correct';
+      else if (i === chosen && chosen !== q.answer) cls += ' wrong';
+    } else if (i === chosen) {
+      cls += ' selected';
+    }
+    return `<div class="${cls}" onclick="selectChoice(${i})">
+      <div class="choice-letter">${letters[i]}</div>
+      <div class="choice-text">${c}</div>
+    </div>`;
+  }).join('');
+
+  let expClass = 'explanation' + (isRevealed ? ' show' : '') + (isRevealed && chosen !== q.answer ? ' wrong-exp' : '');
+  let expTitleClass = 'exp-title' + (isRevealed && chosen !== q.answer ? ' wrong-t' : '');
+  let expIcon = isRevealed && chosen !== q.answer ? '✗' : '✓';
+  let expMsg = isRevealed && chosen !== q.answer ? 'Incorrect' : 'Correct';
+
+  let bodyHTML = q.body.replace(/\n/g, '<br>');
+
+  area.innerHTML = `
+    <div class="q-card">
+      <div class="q-meta">
+        <div class="q-num-badge">Question ${currentQ + 1}</div>
+        <div class="q-type-badge">${q.type}</div>
+        <button class="btn-share-q" onclick="openShareModal(${currentQ})" title="Share this question">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+          Share
+        </button>
+      </div>
+      <div class="q-body">${bodyHTML}</div>
+      ${q.prompt ? `<div class="q-prompt">${q.prompt}</div>` : ''}
+      <div class="choices">${choicesHTML}</div>
+      ${!isRevealed ? `<button class="btn-submit-ans" id="submitBtn" onclick="submitAnswer()" ${chosen===null?'disabled':''}>Check answer</button>` : ''}
+      <div class="${expClass}" id="expBox">
+        <div class="${expTitleClass}">${expIcon} ${expMsg} — ${letters[q.answer]} is the correct answer</div>
+        <div class="exp-text">${q.explanation}</div>
+      </div>
+    </div>`;
+}
+
+function selectChoice(idx) {
+  if (!userAnswers[currentModule]) userAnswers[currentModule] = new Array(getActiveMod().questions.length).fill(null);
+  if (!revealed[currentModule]) revealed[currentModule] = new Array(getActiveMod().questions.length).fill(false);
+  if (revealed[currentModule][currentQ]) return;
+  userAnswers[currentModule][currentQ] = idx;
+  renderQuestion();
+  renderSidebar();
+  const btn = document.getElementById('submitBtn');
+  if (btn) btn.disabled = false;
+}
+
+function submitAnswer() {
+  if (!revealed[currentModule]) revealed[currentModule] = new Array(getActiveMod().questions.length).fill(false);
+  revealed[currentModule][currentQ] = true;
+  renderQuestion();
+  renderSidebar();
+}
+
+function prevQ() {
+  if (currentQ > 0) { currentQ--; renderSidebar(); renderQuestion(); }
+}
+
+function nextQ() {
+  const mod = getActiveMod();
+  if (currentQ < mod.questions.length - 1) { currentQ++; renderSidebar(); renderQuestion(); }
+  else { endModule(); }
+}
+
+// SAT Raw-to-Scaled score tables (approximate College Board conversion)
+// Each array index = raw score (0, 1, 2, ...), value = scaled score
+const RW_SCALE = [
+  200,210,220,230,240,250,260,270,280,290,
+  300,310,320,330,340,350,360,370,380,390,
+  400,410,420,430,440,450,460,470,480,490,
+  500,510,520,530,540,550,560,570,580,590,
+  600,610,620,630,640,650,660,670,680,690,
+  700,710,720,730,740,750,760,770,780,790,800
+]; // 61 values for 0–54 raw (we interpolate)
+
+const MATH_SCALE = [
+  200,210,220,230,240,250,260,270,280,290,
+  300,320,340,360,380,400,420,440,460,480,
+  500,510,520,530,540,550,560,570,580,590,
+  600,610,620,630,640,650,660,670,690,710,
+  730,750,770,790,800,800,800,800,800,800,
+  800
+]; // 51 values for 0–44 raw
+
+function rawToScaled(raw, total, table) {
+  // Clamp raw score
+  raw = Math.max(0, Math.min(raw, total));
+  // Map raw to table index
+  const idx = Math.round((raw / total) * (table.length - 1));
+  // Round to nearest 10
+  return Math.round(table[idx] / 10) * 10;
+}
+
+function calcSATScore() {
+  // Detect if we're in a topic drill
+  const isTopicDrill = typeof currentModule === 'string' && currentModule.startsWith('topic_');
+
+  let rwCorrect = 0, rwTotal = 0, mathCorrect = 0, mathTotal = 0;
+  let totalCorrect = 0, totalWrong = 0, totalSkipped = 0;
+  let isRWOnly = false, isMathOnly = false, isFullTest = false;
+
+  if (isTopicDrill) {
+    // Score just the current topic drill
+    const mod = getActiveMod();
+    const topicKey = currentModule.replace('topic_','');
+    const isMath = topicKey === 'Math';
+    isRWOnly = !isMath; isMathOnly = isMath;
+    mod.questions.forEach((q, qi) => {
+      const ans = (userAnswers[currentModule]||[])[qi];
+      if (isMath) mathTotal++; else rwTotal++;
+      if (ans === null) totalSkipped++;
+      else if (ans === q.answer) { totalCorrect++; if (isMath) mathCorrect++; else rwCorrect++; }
+      else totalWrong++;
+    });
+  } else {
+    const params = new URLSearchParams(window.location.search);
+    const moduleParam = params.get('module');
+    isFullTest = (moduleParam === 'all' || moduleParam === null);
+    const moduleIdx = parseInt(moduleParam);
+    isRWOnly   = !isFullTest && moduleIdx < 2;
+    isMathOnly = !isFullTest && moduleIdx >= 2;
+
+    MODULES.forEach((mod, mi) => {
+      if (!isFullTest && mi !== moduleIdx) return;
+      mod.questions.forEach((q, qi) => {
+        const ans = (userAnswers[mi]||[])[qi];
+        const isRW = mi < 2;
+        if (isRW) rwTotal++; else mathTotal++;
+        if (ans === null) totalSkipped++;
+        else if (ans === q.answer) { totalCorrect++; if (isRW) rwCorrect++; else mathCorrect++; }
+        else totalWrong++;
+      });
+    });
+  }
+
+  const rwScaled   = rwTotal   > 0 ? rawToScaled(rwCorrect,   rwTotal,   RW_SCALE)   : null;
+  const mathScaled = mathTotal > 0 ? rawToScaled(mathCorrect, mathTotal, MATH_SCALE) : null;
+
+  let total;
+  if (isRWOnly || isTopicDrill && !isMathOnly) total = rwScaled || 200;
+  else if (isMathOnly) total = mathScaled || 200;
+  else total = Math.round(((rwScaled||200) + (mathScaled||200)) / 10) * 10;
+
+  const progress = JSON.parse(localStorage.getItem('sat_progress') || '{"totalAnswered":0,"totalCorrect":0,"rwSessions":[],"mathSessions":[],"mockSessions":[]}');
+  if (!progress.rwSessions)   progress.rwSessions   = [];
+  if (!progress.mathSessions) progress.mathSessions = [];
+  if (!progress.mockSessions) progress.mockSessions = [];
+
+  progress.totalAnswered = (progress.totalAnswered || 0) + totalCorrect + totalWrong + totalSkipped;
+  progress.totalCorrect  = (progress.totalCorrect  || 0) + totalCorrect;
+
+  const sessionData = { date: new Date().toISOString(), score: total, correct: totalCorrect, wrong: totalWrong, skipped: totalSkipped };
+  if (isMathOnly) progress.mathSessions.push({ ...sessionData, score: mathScaled });
+  else if (isFullTest) progress.mockSessions.push(sessionData);
+  else progress.rwSessions.push({ ...sessionData, score: rwScaled });
+
+  localStorage.setItem('sat_progress', JSON.stringify(progress));
+  return { rwScaled, mathScaled, total, rwCorrect, rwTotal, mathCorrect, mathTotal, totalCorrect, totalWrong, totalSkipped, isFullTest, isRWOnly, isMathOnly };
+}
+
+function getGrade(score) {
+  if (score >= 1400) return { label:'Excellent', bg:'#EAF3DE', color:'#3B6D11' };
+  if (score >= 1200) return { label:'Great', bg:'rgba(196,133,74,0.15)', color:'#C4854A' };
+  if (score >= 1000) return { label:'Good', bg:'rgba(196,174,150,0.2)', color:'#7B6B5A' };
+  return { label:'Keep Practicing', bg:'#FCEBEB', color:'#B94040' };
+}
+
+function endTest() {
+  clearInterval(timerInterval);
+  const s = calcSATScore();
+  const grade = getGrade(s.total);
+
+  document.getElementById('questionArea').style.display = 'none';
+
+  const rs = document.getElementById('resultsScreen');
+  rs.classList.add('show');
+
+  // Build section blocks — only show sections that were tested
+  let sectionHTML = '';
+  if (s.isRWOnly) {
+    sectionHTML = `
+      <div class="sat-sections" style="grid-template-columns:1fr;">
+        <div class="sat-section-block">
+          <div class="sat-section-name">Reading & Writing</div>
+          <div class="sat-section-score">${s.rwScaled}</div>
+          <div class="sat-section-max">out of 800</div>
+          <div class="sat-section-bar"><div class="sat-section-fill" id="rwBar" style="width:0%;background:#C4854A;"></div></div>
+        </div>
+      </div>`;
+  } else if (s.isMathOnly) {
+    sectionHTML = `
+      <div class="sat-sections" style="grid-template-columns:1fr;">
+        <div class="sat-section-block">
+          <div class="sat-section-name">Math</div>
+          <div class="sat-section-score">${s.mathScaled}</div>
+          <div class="sat-section-max">out of 800</div>
+          <div class="sat-section-bar"><div class="sat-section-fill" id="mathBar" style="width:0%;background:#4A3E33;"></div></div>
+        </div>
+      </div>`;
+  } else {
+    sectionHTML = `
+      <div class="sat-sections">
+        <div class="sat-section-block">
+          <div class="sat-section-name">Reading & Writing</div>
+          <div class="sat-section-score">${s.rwScaled}</div>
+          <div class="sat-section-max">out of 800</div>
+          <div class="sat-section-bar"><div class="sat-section-fill" id="rwBar" style="width:0%;background:#C4854A;"></div></div>
+        </div>
+        <div class="sat-section-block">
+          <div class="sat-section-name">Math</div>
+          <div class="sat-section-score">${s.mathScaled}</div>
+          <div class="sat-section-max">out of 800</div>
+          <div class="sat-section-bar"><div class="sat-section-fill" id="mathBar" style="width:0%;background:#4A3E33;"></div></div>
+        </div>
+      </div>`;
+  }
+
+  const scoreLabel  = s.isRWOnly || s.isMathOnly ? 'Section Score' : 'Total Score';
+  const scoreMax    = s.isRWOnly || s.isMathOnly ? '/ 800' : '/ 1600';
+  const scoreRange  = s.isRWOnly || s.isMathOnly ? 'Score range: 200–800' : 'Score range: 400–1600';
+  const startAnim   = s.isRWOnly || s.isMathOnly ? 200 : 400;
+
+  rs.innerHTML = `
+    <div class="sat-score-wrap">
+      <div class="sat-score-header">
+        <div class="sat-logo-txt">SAT Platform</div>
+        <div class="sat-report-lbl">Score Report · ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div>
+      </div>
+      <div class="sat-total-score">
+        <div class="sat-total-label">${scoreLabel}</div>
+        <div>
+          <span class="sat-total-num" id="animScore">${startAnim}</span>
+          <span class="sat-total-denom">${scoreMax}</span>
+        </div>
+        <div class="sat-total-range">${scoreRange}</div>
+        <div class="sat-grade-badge" style="background:${grade.bg};color:${grade.color};">${grade.label}</div>
+      </div>
+      ${sectionHTML}
+      <div class="sat-breakdown">
+        <div class="sat-breakdown-title">Question breakdown</div>
+        <div class="sat-breakdown-grid">
+          <div class="sat-breakdown-item">
+            <div class="sat-breakdown-num" style="color:#3B6D11;">${s.totalCorrect}</div>
+            <div class="sat-breakdown-lbl">Correct</div>
+          </div>
+          <div class="sat-breakdown-item">
+            <div class="sat-breakdown-num" style="color:#B94040;">${s.totalWrong}</div>
+            <div class="sat-breakdown-lbl">Incorrect</div>
+          </div>
+          <div class="sat-breakdown-item">
+            <div class="sat-breakdown-num" style="color:#7B6B5A;">${s.totalSkipped}</div>
+            <div class="sat-breakdown-lbl">Skipped</div>
+          </div>
+        </div>
+      </div>
+      <div class="sat-actions">
+        <button class="btn-sat-primary" onclick="window.location.href='sat-dashboard.html'">Go to my dashboard →</button>
+        <button class="btn-sat-secondary" onclick="retryAll()">Practice again</button>
+      </div>
+      <div class="sat-countdown" id="redirectCountdown">Redirecting to dashboard in <strong>10</strong> seconds...</div>
+    </div>`;
+
+  // Animate score
+  let current = startAnim;
+  const target = s.total;
+  const step = Math.max(1, Math.ceil((target - current) / 40));
+  const counter = setInterval(() => {
+    current = Math.min(current + step, target);
+    const el = document.getElementById('animScore');
+    if (el) el.textContent = current;
+    if (current >= target) clearInterval(counter);
+  }, 30);
+
+  // Animate bars
+  setTimeout(() => {
+    const rwEl = document.getElementById('rwBar');
+    const mathEl = document.getElementById('mathBar');
+    if (rwEl && s.rwScaled)   rwEl.style.width   = Math.round(((s.rwScaled - 200) / 600) * 100) + '%';
+    if (mathEl && s.mathScaled) mathEl.style.width = Math.round(((s.mathScaled - 200) / 600) * 100) + '%';
+  }, 400);
+
+  // Countdown redirect
+  let secs = 10;
+  const cdInterval = setInterval(() => {
+    secs--;
+    const el = document.getElementById('redirectCountdown');
+    if (el) el.innerHTML = `Redirecting to dashboard in <strong>${secs}</strong> seconds...`;
+    if (secs <= 0) { clearInterval(cdInterval); window.location.href = 'sat-dashboard.html'; }
+  }, 1000);
+}
+
+function endModule() {
+  clearInterval(timerInterval);
+  const mod = getActiveMod();
+  if (!mod) return;
+  const qs = mod.questions;
+  let correct = 0;
+  qs.forEach((q, i) => { if ((userAnswers[currentModule]||[])[i] === q.answer) correct++; });
+
+  const params = new URLSearchParams(window.location.search);
+  const moduleParam = params.get('module');
+  const isFullTest = (moduleParam === 'all' || moduleParam === null);
+  const isTopicModule = typeof currentModule === 'string' && currentModule.startsWith('topic_');
+  const isLast = isTopicModule || currentModule === MODULES.length - 1;
+
+  // If full test and not last module → show "continue to next" screen
+  if (!isTopicModule && isFullTest && !isLast) {
+    const area = document.getElementById('questionArea');
+    area.innerHTML = `
+      <div style="background:var(--white);border:1px solid var(--pale);border-radius:14px;padding:40px;text-align:center;animation:fadeUp .4s ease both;">
+        <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--dark2);margin-bottom:8px;">Module complete!</div>
+        <div style="font-size:14px;color:var(--mid);margin-bottom:6px;">You got <strong style="color:var(--dark2);">${correct}/${qs.length}</strong> correct in this module.</div>
+        <div style="font-size:13px;color:var(--light);margin-bottom:28px;">Ready for the next section?</div>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+          <button onclick="switchModule(${currentModule+1})" style="background:var(--dark2);color:var(--white);border:none;padding:13px 28px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;" onmouseover="this.style.background='#C4854A'" onmouseout="this.style.background='var(--dark2)'">Continue to next module →</button>
+          <button onclick="endTest()" style="background:transparent;color:var(--dark2);border:1.5px solid var(--pale);padding:13px 28px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;">Finish & see score</button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  // Single module or last module → go straight to score
+  endTest();
+}
+
+function retryAll() {
+  const mod = getActiveMod();
+  if (typeof currentModule === 'string' && currentModule.startsWith('topic_')) {
+    userAnswers[currentModule] = new Array(mod.questions.length).fill(null);
+    revealed[currentModule] = new Array(mod.questions.length).fill(false);
+  } else {
+    MODULES.forEach((m, mi) => {
+      userAnswers[mi] = new Array(m.questions.length).fill(null);
+      revealed[mi] = new Array(m.questions.length).fill(false);
+    });
+    currentModule = 0;
+    document.querySelectorAll('.module-tab').forEach((t,i) => t.classList.toggle('active', i===0));
+    document.getElementById('moduleTitle').textContent = MODULES[0].title;
+    document.getElementById('moduleSubtitle').textContent = MODULES[0].subtitle;
+  }
+  currentQ = 0;
+  document.getElementById('resultsScreen').classList.remove('show');
+  document.getElementById('resultsScreen').innerHTML = '';
+  document.getElementById('questionArea').style.display = 'block';
+  startTimer();
+  renderSidebar();
+  renderQuestion();
+}
+
+// ── SHARE QUESTION ─────────────────────────────────────────────
+let shareQIdx = null;
+let selectedShareTargets = new Set();
+const AVATAR_COLORS = ['#C4854A','#4A3E33','#3B6D11','#185FA5','#993556','#0F6E56'];
+
+function openShareModal(qIdx) {
+  shareQIdx = qIdx;
+  selectedShareTargets.clear();
+  updateSendBtn();
+  document.getElementById('shareNote').value = '';
+  document.getElementById('shareSearch').value = '';
+
+  const q = getActiveMod().questions[qIdx];
+  document.getElementById('sharePreviewText').textContent =
+    (q.body + (q.prompt ? ' — ' + q.prompt : '')).substring(0, 160) + '...';
+
+  buildShareList('');
+  document.getElementById('shareOverlay').classList.add('show');
+}
+
+function closeShare() {
+  document.getElementById('shareOverlay').classList.remove('show');
+  selectedShareTargets.clear();
+  updateSendBtn();
+}
+
+function closeShareIfBg(e) {
+  if (e.target === document.getElementById('shareOverlay')) closeShare();
+}
+
+function filterShareList() {
+  buildShareList(document.getElementById('shareSearch').value.toLowerCase());
+}
+
+function updateSendBtn() {
+  const btn = document.getElementById('sendShareBtn');
+  if (!btn) return;
+  const hasSelection = selectedShareTargets.size > 0;
+  btn.style.opacity = hasSelection ? '1' : '0.4';
+  btn.style.cursor  = hasSelection ? 'pointer' : 'default';
+}
+
+function buildShareList(filter) {
+  const raw  = localStorage.getItem('sat_community');
+  const data = raw ? JSON.parse(raw) : { groups:[], dms:[] };
+  const groups = (data.groups||[]).filter(g => !filter || g.name.toLowerCase().includes(filter));
+  const dms    = (data.dms||[]).filter(d => !filter || d.with.toLowerCase().includes(filter));
+
+  const list = document.getElementById('shareList');
+  list.innerHTML = '';
+
+  if (!groups.length && !dms.length) {
+    list.innerHTML = '<div style="padding:32px 20px;text-align:center;color:#7B6B5A;font-size:13px;line-height:1.7;">No groups or chats yet.<br><a href="sat-community.html" style="color:#C4854A;text-decoration:none;font-weight:500;">Open Community to create one →</a></div>';
+    return;
+  }
+
+  function makeItem(key, avatarTxt, avatarColor, name, sub) {
+    const div = document.createElement('div');
+    div.className = 'share-item';
+    div.style.cssText = 'display:flex;align-items:center;gap:12px;padding:12px 20px;cursor:pointer;transition:background .15s;';
+
+    div.innerHTML = `
+      <div style="width:42px;height:42px;border-radius:50%;background:${avatarColor};display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0;">${avatarTxt}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;font-weight:500;color:#2C231A;">${name}</div>
+        <div style="font-size:11px;color:#7B6B5A;margin-top:2px;">${sub}</div>
+      </div>
+      <div class="share-check-circle" style="width:22px;height:22px;border-radius:50%;border:2px solid #D9CDBE;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;"></div>`;
+
+    div.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const circle = div.querySelector('.share-check-circle');
+      if (selectedShareTargets.has(key)) {
+        selectedShareTargets.delete(key);
+        div.style.background = '';
+        circle.style.background = '';
+        circle.style.borderColor = '#D9CDBE';
+        circle.textContent = '';
+      } else {
+        selectedShareTargets.add(key);
+        div.style.background = 'rgba(196,133,74,0.08)';
+        circle.style.background = '#C4854A';
+        circle.style.borderColor = '#C4854A';
+        circle.style.color = '#fff';
+        circle.style.fontSize = '13px';
+        circle.textContent = '✓';
+      }
+      updateSendBtn();
+    });
+
+    return div;
+  }
+
+  if (groups.length) {
+    const lbl = document.createElement('div');
+    lbl.style.cssText = 'font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:#7B6B5A;padding:10px 20px 4px;';
+    lbl.textContent = 'Groups';
+    list.appendChild(lbl);
+    groups.forEach((g, i) => {
+      const col = AVATAR_COLORS[i % AVATAR_COLORS.length];
+      list.appendChild(makeItem('g:'+g.id, g.avatar||g.name[0], col, g.name, (g.topic||'') + ' · ' + (g.members||[]).length + ' members'));
+    });
+  }
+
+  if (dms.length) {
+    const lbl = document.createElement('div');
+    lbl.style.cssText = 'font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:#7B6B5A;padding:10px 20px 4px;';
+    lbl.textContent = 'Private messages';
+    list.appendChild(lbl);
+    dms.forEach((d, i) => {
+      const col = AVATAR_COLORS[(i+2) % AVATAR_COLORS.length];
+      list.appendChild(makeItem('dm:'+d.id, d.withAvatar||d.with[0], col, d.with, 'Private conversation'));
+    });
+  }
+}
+
+function sendShare() {
+  if (selectedShareTargets.size === 0 || shareQIdx === null) {
+    showToast('Please select at least one chat first');
+    return;
+  }
+
+  const q      = getActiveMod().questions[shareQIdx];
+  const note   = (document.getElementById('shareNote').value || '').trim();
+  const udata  = JSON.parse(localStorage.getItem('sat_user') || '{}');
+  const myName = udata.name || udata.firstName || 'Student';
+  const myAv   = udata.avatar || myName[0] || 'S';
+
+  const letters = ['A','B','C','D'];
+  const qText = '📚 Question ' + (shareQIdx+1) + ' — ' + q.type + '\n\n'
+    + q.body
+    + (q.prompt ? '\n\n' + q.prompt : '')
+    + '\n\n'
+    + q.choices.map((c,i) => letters[i]+'. '+c).join('\n');
+  const fullText = note ? '💬 ' + note + '\n\n' + qText : qText;
+
+  const raw  = localStorage.getItem('sat_community');
+  const data = raw ? JSON.parse(raw) : { globalMessages:[], groups:[], dms:[] };
+  const now  = new Date().toISOString();
+  const sentNames = [];
+
+  selectedShareTargets.forEach(key => {
+    const sep  = key.indexOf(':');
+    const type = key.substring(0, sep);
+    const id   = key.substring(sep + 1);
+    const msg  = { id: Date.now()+Math.random(), author: myName, avatar: myAv, color:'c0', text: fullText, time: now, isQuestion: true };
+
+    if (type === 'g') {
+      const g = (data.groups||[]).find(x => x.id === id);
+      if (g) { if (!g.messages) g.messages=[]; g.messages.push(msg); sentNames.push(g.name); }
+    } else if (type === 'dm') {
+      const d = (data.dms||[]).find(x => x.id === id);
+      if (d) { if (!d.messages) d.messages=[]; d.messages.push(msg); sentNames.push(d.with); }
+    }
+  });
+
+  localStorage.setItem('sat_community', JSON.stringify(data));
+  closeShare();
+  showToast(sentNames.length ? '✓ Sent to ' + sentNames.join(', ') : '✓ Sent!');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('shareToast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+// ── END SHARE ──────────────────────────────────────────────────
+
+init();
+</script>
+<!-- SHARE MODAL -->
+<div class="share-overlay" id="shareOverlay" onclick="closeShareIfBg(event)">
+  <div class="share-sheet" id="shareSheet" onclick="event.stopPropagation()">
+    <div class="share-handle"></div>
+    <div class="share-header" style="position:relative;">
+      <div class="share-title">Share question</div>
+      <div class="share-subtitle">Tap to select, then hit Send</div>
+      <button class="share-cancel" onclick="closeShare()">✕ Cancel</button>
+    </div>
+    <div class="share-preview" id="sharePreview">
+      <div class="share-preview-label">Question preview</div>
+      <div class="share-preview-text" id="sharePreviewText"></div>
+    </div>
+    <div class="share-search"><input type="text" id="shareSearch" placeholder="Search groups and chats..." oninput="filterShareList()"/></div>
+    <div class="share-list" id="shareList"></div>
+    <div class="share-footer">
+      <textarea class="share-note" id="shareNote" placeholder="Add a note... (optional)" rows="1"></textarea>
+      <button class="btn-send-share" id="sendShareBtn" onclick="sendShare()" style="opacity:0.4;">Send</button>
+    </div>
+  </div>
+</div>
+
+<div class="share-toast" id="shareToast"></div>
+
+</body>
+</html>

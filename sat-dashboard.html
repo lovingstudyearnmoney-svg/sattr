@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dashboard — SAT Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#F2EDE6;--bg2:#EDE4D9;--bg3:#E4D8C8;
+  --dark:#2C231A;--dark2:#4A3E33;--mid:#7B6B5A;
+  --light:#C4AE96;--pale:#D9CDBE;--accent:#C4854A;
+  --accent2:#E8C49A;--white:#FAF7F2;
+  --ok:#3B6D11;--ok-bg:#EAF3DE;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--dark);min-height:100vh;display:flex;flex-direction:column;}
+
+/* ── NAV ── */
+nav{display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:64px;background:var(--dark2);position:sticky;top:0;z-index:100;}
+.logo{font-family:'Playfair Display',serif;font-size:24px;font-weight:900;color:var(--bg);text-decoration:none;letter-spacing:-0.01em;}
+.logo span{color:var(--accent2);}
+.nav-right{display:flex;align-items:center;gap:20px;}
+.nav-link{font-size:13px;color:var(--light);text-decoration:none;transition:color .2s;cursor:pointer;}
+.nav-link:hover{color:var(--accent2);}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--white);cursor:pointer;}
+
+/* ── HERO BANNER ── */
+.hero-banner{background:var(--dark2);padding:40px 48px;position:relative;overflow:hidden;}
+.hero-banner::before{content:'';position:absolute;top:-80px;right:-80px;width:320px;height:320px;border-radius:50%;border:50px solid rgba(196,133,74,0.1);animation:spinRing 22s linear infinite;}
+.hero-banner::after{content:'';position:absolute;bottom:-60px;left:200px;width:200px;height:200px;border-radius:50%;border:30px solid rgba(196,174,150,0.07);animation:spinRing 15s linear infinite reverse;}
+@keyframes spinRing{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+.hero-inner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:24px;position:relative;z-index:1;}
+.hero-left{}
+.hero-greeting{font-size:12px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--light);margin-bottom:8px;}
+.hero-name{font-family:'Playfair Display',serif;font-size:clamp(24px,3.5vw,38px);font-weight:900;color:var(--white);margin-bottom:10px;}
+.hero-name span{color:var(--accent2);font-style:italic;}
+.hero-sub{font-size:14px;color:var(--light);font-weight:300;max-width:420px;line-height:1.65;}
+.score-pills{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px;}
+.score-pill{background:rgba(255,255,255,0.08);border:1px solid rgba(196,174,150,0.25);border-radius:10px;padding:10px 18px;display:flex;align-items:center;gap:10px;}
+.pill-num{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--accent2);}
+.pill-label{font-size:11px;color:var(--light);line-height:1.4;}
+.hero-right{position:relative;z-index:1;animation:floatBooks 4s ease-in-out infinite;}
+@keyframes floatBooks{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+
+/* ── MAIN CONTENT ── */
+.content{padding:36px 48px;flex:1;}
+.section-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.section-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--dark2);}
+.see-all{font-size:13px;color:var(--accent);text-decoration:none;cursor:pointer;}
+.see-all:hover{text-decoration:underline;}
+
+/* ── MODULE CARDS GRID ── */
+.modules-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-bottom:40px;}
+
+.module-card{background:var(--white);border:1.5px solid var(--pale);border-radius:14px;padding:0;cursor:pointer;transition:all .25s;overflow:hidden;text-decoration:none;display:block;position:relative;}
+.module-card:hover{border-color:var(--accent);transform:translateY(-3px);}
+.module-card:hover .card-arrow{transform:translateX(4px);}
+
+.card-top{padding:20px 20px 16px;position:relative;}
+.card-tag{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;padding:4px 10px;border-radius:100px;margin-bottom:14px;}
+.card-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;}
+.card-icon svg{width:22px;height:22px;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;fill:none;}
+.card-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--dark2);margin-bottom:5px;line-height:1.2;}
+.card-sub{font-size:12px;color:var(--mid);font-weight:300;line-height:1.5;}
+.card-arrow{font-size:16px;color:var(--light);position:absolute;top:20px;right:20px;transition:transform .2s;}
+
+.card-bottom{padding:12px 20px 16px;border-top:1px solid var(--pale);display:flex;align-items:center;justify-content:space-between;}
+.card-meta{font-size:11px;color:var(--mid);}
+.card-meta strong{color:var(--dark2);font-weight:500;}
+.card-status{font-size:11px;font-weight:500;padding:3px 10px;border-radius:100px;}
+.status-new{background:rgba(196,133,74,0.12);color:var(--accent);}
+.status-done{background:var(--ok-bg);color:var(--ok);}
+.status-progress{background:rgba(196,174,150,0.2);color:var(--mid);}
+
+/* CARD COLOR THEMES */
+.theme-amber .card-tag{background:rgba(196,133,74,0.12);color:var(--accent);}
+.theme-amber .card-icon{background:rgba(196,133,74,0.12);}
+.theme-amber .card-icon svg{stroke:var(--accent);}
+.theme-amber:hover{border-color:var(--accent);}
+
+.theme-brown .card-tag{background:rgba(74,62,51,0.1);color:var(--dark2);}
+.theme-brown .card-icon{background:rgba(74,62,51,0.1);}
+.theme-brown .card-icon svg{stroke:var(--dark2);}
+.theme-brown:hover{border-color:var(--dark2);}
+
+.theme-green .card-tag{background:var(--ok-bg);color:var(--ok);}
+.theme-green .card-icon{background:var(--ok-bg);}
+.theme-green .card-icon svg{stroke:var(--ok);}
+.theme-green:hover{border-color:var(--ok);}
+
+.theme-mid .card-tag{background:rgba(123,107,90,0.12);color:var(--mid);}
+.theme-mid .card-icon{background:rgba(123,107,90,0.12);}
+.theme-mid .card-icon svg{stroke:var(--mid);}
+.theme-mid:hover{border-color:var(--mid);}
+
+/* ── PROGRESS BARS INSIDE CARD ── */
+.prog-wrap{margin-top:10px;}
+.prog-label{display:flex;justify-content:space-between;font-size:11px;color:var(--mid);margin-bottom:4px;}
+.prog-bar{height:4px;background:var(--pale);border-radius:2px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:2px;transition:width .6s ease;}
+.fill-amber{background:var(--accent);}
+.fill-brown{background:var(--dark2);}
+.fill-green{background:var(--ok);}
+.fill-mid{background:var(--mid);}
+
+/* ── QUICK STATS ROW ── */
+.quick-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:40px;}
+.qs-card{background:var(--white);border:1px solid var(--pale);border-radius:12px;padding:18px 20px;}
+.qs-num{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--dark2);}
+.qs-label{font-size:12px;color:var(--mid);margin-top:3px;}
+.qs-delta{font-size:11px;color:var(--ok);font-weight:500;margin-top:2px;}
+
+/* ── RECENT ACTIVITY ── */
+.activity-list{display:flex;flex-direction:column;gap:10px;margin-bottom:40px;}
+.activity-item{background:var(--white);border:1px solid var(--pale);border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:14px;}
+.act-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.act-text{flex:1;font-size:13px;color:var(--dark2);}
+.act-text span{color:var(--mid);font-size:12px;display:block;margin-top:2px;}
+.act-score{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--dark2);}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.module-card{animation:fadeUp .4s ease both;}
+.module-card:nth-child(2){animation-delay:.05s;}
+.module-card:nth-child(3){animation-delay:.1s;}
+.module-card:nth-child(4){animation-delay:.15s;}
+.module-card:nth-child(5){animation-delay:.2s;}
+.module-card:nth-child(6){animation-delay:.25s;}
+.module-card:nth-child(7){animation-delay:.3s;}
+.module-card:nth-child(8){animation-delay:.35s;}
+.qs-card{animation:fadeUp .4s ease both;}
+.qs-card:nth-child(2){animation-delay:.06s;}
+.qs-card:nth-child(3){animation-delay:.12s;}
+.qs-card:nth-child(4){animation-delay:.18s;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  nav{padding:0 24px;}
+  .hero-banner{padding:32px 24px;}
+  .content{padding:24px 20px;}
+  .hero-right{display:none;}
+  .quick-stats{grid-template-columns:repeat(2,1fr);}
+  .modules-grid{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:560px){
+  .modules-grid{grid-template-columns:1fr;}
+  .quick-stats{grid-template-columns:1fr 1fr;}
+  .score-pills{gap:8px;}
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="sat-auth.js"></script>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="sat-landing.html" class="logo">S<span>AT</span></a>
+  <div class="nav-right">
+    <span class="nav-link" onclick="window.location.href='sat-practice.html'">Practice</span>
+    <span class="nav-link" onclick="window.location.href='sat-community.html'">Community</span>
+    <span class="nav-link">Progress</span>
+    <span class="nav-link">Settings</span>
+    <span class="nav-link" onclick="handleSignOut()" style="color:#F09595;">Log out</span>
+    <div class="avatar" id="navAvatar" title="Your account">?</div>
+  </div>
+</nav>
+
+<!-- HERO BANNER -->
+<div class="hero-banner">
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="hero-greeting">Welcome back</div>
+      <div class="hero-name">Hello, <span id="userName">there</span> 👋</div>
+      <div class="hero-sub">You're on a 4-day streak! Keep pushing — your target score of 1500 is within reach. Pick up where you left off.</div>
+      <div class="score-pills">
+        <div class="score-pill">
+          <div>
+            <div class="pill-num">1340</div>
+            <div class="pill-label">Current<br>est. score</div>
+          </div>
+        </div>
+        <div class="score-pill">
+          <div>
+            <div class="pill-num">1500</div>
+            <div class="pill-label">Target<br>score</div>
+          </div>
+        </div>
+        <div class="score-pill">
+          <div>
+            <div class="pill-num">4🔥</div>
+            <div class="pill-label">Day<br>streak</div>
+          </div>
+        </div>
+        <div class="score-pill">
+          <div>
+            <div class="pill-num">247</div>
+            <div class="pill-label">Questions<br>answered</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Decorative animated books -->
+    <div class="hero-right">
+      <svg width="160" height="180" viewBox="0 0 160 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Big book -->
+        <rect x="10" y="20" width="90" height="120" rx="7" fill="#7B6B5A"/>
+        <rect x="20" y="20" width="74" height="120" rx="5" fill="#C4AE96"/>
+        <rect x="10" y="20" width="13" height="120" rx="4" fill="#4A3E33"/>
+        <rect x="32" y="40" width="48" height="4" rx="2" fill="#9E8A77" opacity=".7"/>
+        <rect x="32" y="52" width="38" height="4" rx="2" fill="#9E8A77" opacity=".7"/>
+        <rect x="32" y="64" width="44" height="4" rx="2" fill="#9E8A77" opacity=".5"/>
+        <rect x="32" y="76" width="30" height="4" rx="2" fill="#9E8A77" opacity=".5"/>
+        <text x="58" y="118" text-anchor="middle" font-family="Playfair Display,serif" font-size="14" font-weight="700" fill="#4A3E33">SAT</text>
+        <!-- Small orange book -->
+        <rect x="100" y="50" width="52" height="72" rx="5" fill="#C4854A"/>
+        <rect x="108" y="50" width="40" height="72" rx="4" fill="#E8C49A"/>
+        <rect x="100" y="50" width="9" height="72" rx="3" fill="#8B5A30"/>
+        <rect x="114" y="64" width="26" height="3" rx="1.5" fill="#C4854A" opacity=".5"/>
+        <rect x="114" y="73" width="20" height="3" rx="1.5" fill="#C4854A" opacity=".5"/>
+        <text x="130" y="104" text-anchor="middle" font-family="Playfair Display,serif" font-size="10" font-weight="700" fill="#8B5A30">PREP</text>
+        <!-- Pencil -->
+        <rect x="135" y="20" width="10" height="58" rx="2" fill="#E8C49A"/>
+        <rect x="135" y="20" width="10" height="10" rx="2" fill="#C4854A"/>
+        <polygon points="135,78 145,78 140,92" fill="#F2EDE6"/>
+        <!-- Star -->
+        <polygon points="22,158 24.5,165 32,165 26.5,169 28.5,176 22,172 15.5,176 17.5,169 12,165 19.5,165" fill="#C4854A" opacity=".8"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="content">
+
+  <!-- QUICK STATS -->
+  <div class="section-row">
+    <div class="section-title">Your progress</div>
+  </div>
+  <div class="quick-stats">
+    <div class="qs-card">
+      <div class="qs-num">68%</div>
+      <div class="qs-label">Reading & Writing accuracy</div>
+      <div class="qs-delta">↑ +6% this week</div>
+    </div>
+    <div class="qs-card">
+      <div class="qs-num">74%</div>
+      <div class="qs-label">Math accuracy</div>
+      <div class="qs-delta">↑ +4% this week</div>
+    </div>
+    <div class="qs-card">
+      <div class="qs-num">247</div>
+      <div class="qs-label">Questions answered total</div>
+      <div class="qs-delta">↑ 38 this week</div>
+    </div>
+    <div class="qs-card">
+      <div class="qs-num">12</div>
+      <div class="qs-label">Full modules completed</div>
+      <div class="qs-delta">↑ 3 this week</div>
+    </div>
+  </div>
+
+  <!-- ENGLISH PRACTICES -->
+  <div class="section-row">
+    <div class="section-title">📖 English Practices</div>
+    <a class="see-all" href="sat-practice.html?module=0">Start →</a>
+  </div>
+  <div class="modules-grid">
+
+    <a class="module-card theme-amber" href="sat-practice.html?module=0">
+      <div class="card-top">
+        <div class="card-arrow">→</div>
+        <div class="card-tag">English</div>
+        <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></div>
+        <div class="card-title">Dec R&W — Module 1</div>
+        <div class="card-sub">Vocabulary, main idea, evidence<br>Inference, dual text</div>
+        <div class="prog-wrap"><div class="prog-label"><span>Progress</span><span id="rw1prog">0/27</span></div><div class="prog-bar"><div class="prog-fill fill-amber" id="rw1bar" style="width:0%"></div></div></div>
+      </div>
+      <div class="card-bottom"><div class="card-meta"><strong>27 questions</strong> · 32 min</div><div class="card-status status-new" id="rw1status">New</div></div>
+    </a>
+
+    <a class="module-card theme-amber" href="sat-practice.html?module=1">
+      <div class="card-top">
+        <div class="card-arrow">→</div>
+        <div class="card-tag">English</div>
+        <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></div>
+        <div class="card-title">Dec R&W — Module 2</div>
+        <div class="card-sub">Grammar, transitions, research<br>Command of evidence</div>
+        <div class="prog-wrap"><div class="prog-label"><span>Progress</span><span id="rw2prog">0/27</span></div><div class="prog-bar"><div class="prog-fill fill-amber" id="rw2bar" style="width:0%"></div></div></div>
+      </div>
+      <div class="card-bottom"><div class="card-meta"><strong>27 questions</strong> · 32 min</div><div class="card-status status-new" id="rw2status">New</div></div>
+    </a>
+
+    <a class="module-card theme-amber" href="sat-october-mock.html?module=0">
+      <div class="card-top">
+        <div class="card-arrow">→</div>
+        <div class="card-tag">English ✨ AI</div>
+        <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></div>
+        <div class="card-title">Oct R&W — Module 1</div>
+        <div class="card-sub">Vocabulary, inference, evidence<br>AI explanations after each answer</div>
+        <div class="prog-wrap"><div class="prog-label"><span>Questions</span><span>27</span></div><div class="prog-bar"><div class="prog-fill fill-amber" style="width:0%"></div></div></div>
+      </div>
+      <div class="card-bottom"><div class="card-meta"><strong>27 questions</strong> · 32 min</div><div class="card-status status-new">✨ AI</div></div>
+    </a>
+
+    <a class="module-card theme-amber" href="sat-october-mock.html?module=1">
+      <div class="card-top">
+        <div class="card-arrow">→</div>
+        <div class="card-tag">English ✨ AI</div>
+        <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></div>
+        <div class="card-title">Oct R&W — Module 2</div>
+        <div class="card-sub">Grammar, transitions, research<br>AI explanations after each answer</div>
+        <div class="prog-wrap"><div class="prog-label"><span>Questions</span><span>27</span></div><div class="prog-bar"><div class="prog-fill fill-amber" style="width:0%"></div></div></div>
+      </div>
+      <div class="card-bottom"><div class="card-meta"><strong>27 questions</strong> · 32 min</div><div class="card-status status-new">✨ AI</div></div>
+    </a>
+
+  </div>
+
+  <!-- MATH PRACTICES -->
+  <div class="section-row" style="margin-top:32px;">
+    <div class="section-title">✖️ Math Practices</div>
+    <a class="see-all" href="sat-practice.html?module=2">Start →</a>
+  </div>
+  <div class="modules-grid">
+
+    <a class="module-card theme-brown" href="sat-practice.html?module=2">
+      <div class="card-top">
+        <div class="card-arrow">→</div>
+        <div class="card-tag">Math</div>
+        <div class="card-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+        <div class="card-title">Dec Math — Module 1</div>
+        <div class="card-sub">Algebra, geometry, functions<br>Linear equations, statistics</div>
+        <div class="prog-wrap"><div class="prog-label"><span>Progress</span><span id="m1prog">0/22</span></div><div class="prog-bar"><div class="prog-fill fill-brown" id="m1bar" style="width:0%"></div></div></div>
+      </div>
+      <div class="card-bottom"><div class="card-meta"><strong>22 questions</strong> · 35 min</div><div class="card-status status-new" id="m1status">New</div></div>
+    </a>
+
+    <a class="module-card theme-brown" href="sat-practice.html?module=3">
+      <div class="card-top">
+        <div class="card-arrow">→</div>
+        <div class="card-tag">Math</div>
+        <div class="card-icon"><svg viewBox="0 0 24 24"><line x1="4" y1="20" x2="20" y2="4"/><line x1="4" y1="4" x2="20" y2="20"/></svg></div>
+        <div class="card-title">Dec Math — Module 2</div>
+        <div class="card-sub">Quadratics, exponentials<br>Systems, inequalities</div>
+        <div class="prog-wrap"><div class="prog-label"><span>Progress</span><span id="m2prog">0/17</span></div><div class="prog-bar"><div class="prog-fill fill-brown" id="m2bar" style="width:0%"></div></div></div>
+      </div>
+      <div class="card-bottom"><div class="card-meta"><strong>17 questions</strong> · 35 min</div><div class="card-status status-new" id="m2status">New</div></div>
+    </a>
+
+  </div>
+
+  <!-- FULL MOCK TESTS -->
+  <div class="section-row" style="margin-top:32px;">
+    <div class="section-title">🎯 Full Mock Tests</div>
+    <a class="see-all" href="sat-practice.html?module=all">Start →</a>
+  </div>
+  <div class="modules-grid">
+
+    <a class="module-card theme-green" href="sat-practice.html?module=all">
+      <div class="card-top">
+        <div class="card-arrow">→</div>
+        <div class="card-tag">Full Mock</div>
+        <div class="card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg></div>
+        <div class="card-title">December Full Mock</div>
+        <div class="card-sub">All 4 modules · Timed<br>Simulates real SAT test day</div>
+        <div class="prog-wrap"><div class="prog-label"><span>Questions</span><span>93 total</span></div><div class="prog-bar"><div class="prog-fill fill-green" style="width:0%"></div></div></div>
+      </div>
+      <div class="card-bottom"><div class="card-meta"><strong>93 questions</strong> · 134 min</div><div class="card-status status-new">Timed</div></div>
+    </a>
+
+    <a class="module-card theme-green" href="sat-october-mock.html">
+      <div class="card-top">
+        <div class="card-arrow">→</div>
+        <div class="card-tag">Full Mock ✨ AI</div>
+        <div class="card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg></div>
+        <div class="card-title">October Full R&W Mock</div>
+        <div class="card-sub">Both modules · 54 questions<br>AI explanations included</div>
+        <div class="prog-wrap"><div class="prog-label"><span>Questions</span><span>54 total</span></div><div class="prog-bar"><div class="prog-fill fill-green" style="width:0%"></div></div></div>
+      </div>
+      <div class="card-bottom"><div class="card-meta"><strong>54 questions</strong> · 64 min</div><div class="card-status status-new">✨ AI</div></div>
+    </a>
+
+  </div>
+
+  <!-- TOPIC DRILLS -->
+  <div class="section-row" style="margin-top:32px;">
+    <div class="section-title">🎓 Topic Drills</div>
+    <span style="font-size:12px;color:var(--mid);">All questions from all papers combined</span>
+  </div>
+  <div class="modules-grid" id="topicDrillsGrid">
+
+    <a class="module-card theme-mid" href="sat-practice.html?topic=Vocabulary">
+      <div class="card-top">
+        <div class="card-arrow">→</div><div class="card-tag">📚 English</div>
+        <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></div>
+        <div class="card-title">Vocabulary Drill</div>
+        <div class="card-sub">Word-in-context questions<br>From all SAT papers</div>
+        <div class="prog-wrap"><div class="prog-label"><span>Questions</span><span>18</span></div><div class="prog-bar"><div class="prog-fill fill-mid" style="width:0%"></div></div></div>
+      </div>
+      <div class="card-bottom"><div class="card-meta"><strong>18 questions</strong> · 22 min</div><div class="card-status status-new">Drill</div></div>
+    </a>
+
+    <a class="module-card theme-mid" href="sat-practice.html?topic=Transition">
+      <div class="card-top">
+        <div class="card-arrow">→</div><div class="card-tag">🔗 English</div>
+        <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+        <div class="card-title">Transitions Drill</div>
+        <div class="card-sub">Logical connectors & flow<br>From all SAT papers</div>
+        <div class="prog-wrap"><div class="prog-label"><span>Questions</span><span>11</span></div><div class="prog-bar"><div class="prog-fill fill-mid" style="width:0%"></div></div></div>
+      </div>
+      <div class="card-bottom"><div class="card-meta"><strong>11 questions</strong> · 14 min</div><div class="card-status status-new">Drill</div></div>
+    </a>
+
+    <a class="module-card theme-mid" href="sat-practice.html?topic=Grammar">
+      <div class="card-top">
+        <div class="card-arrow">→</div><div class="card-tag">✏️ English</div>
+        <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
+        <div class="card-title">Grammar Drill</div>
+        <div class="card-sub">Standard English conventions<br>From all SAT papers</div>
+        <div class="prog-wrap"><div class="prog-label"><span>Questions</span><span>26</span></div><div class="prog-bar"><div class="prog-fill fill-mid" style="width:0%"></div></div></div>
+      </div>
+      <div class="card-bottom"><div class="card-meta"><strong>26 questions</strong> · 32 min</div><div class="card-status status-new">Drill</div></div>
+    </a>
+
+    <a class="module-card theme-mid" href="sat-practice.html?topic=Research+Skills">
+      <div class="card-top">
+        <div class="card-arrow">→</div><div class="card-tag">🔬 English</div>
+        <div class="card-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+        <div class="card-title">Research Skills Drill</div>
+        <div class="card-sub">Notes-based questions<br>From all SAT papers</div>
+        <div class="prog-wrap"><div class="prog-label"><span>Questions</span><span>11</span></div><div class="prog-bar"><div class="prog-fill fill-mid" style="width:0%"></div></div></div>
+      </div>
+      <div class="card-bottom"><div class="card-meta"><strong>11 questions</strong> · 14 min</div><div class="card-status status-new">Drill</div></div>
+    </a>
+
+    <a class="module-card theme-mid" href="sat-practice.html?topic=Data+Analysis">
+      <div class="card-top">
+        <div class="card-arrow">→</div><div class="card-tag">📊 English</div>
+        <div class="card-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+        <div class="card-title">Data Analysis Drill</div>
+        <div class="card-sub">Graphs, tables & charts<br>From all SAT papers</div>
+        <div class="prog-wrap"><div class="prog-label"><span>Questions</span><span>9</span></div><div class="prog-bar"><div class="prog-fill fill-mid" style="width:0%"></div></div></div>
+      </div>
+      <div class="card-bottom"><div class="card-meta"><strong>9 questions</strong> · 11 min</div><div class="card-status status-new">Drill</div></div>
+    </a>
+
+    <a class="module-card theme-mid" href="sat-practice.html?topic=Inference">
+      <div class="card-top">
+        <div class="card-arrow">→</div><div class="card-tag">💡 English</div>
+        <div class="card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg></div>
+        <div class="card-title">Inference Drill</div>
+        <div class="card-sub">Draw logical conclusions<br>From all SAT papers</div>
+        <div class="prog-wrap"><div class="prog-label"><span>Questions</span><span>8</span></div><div class="prog-bar"><div class="prog-fill fill-mid" style="width:0%"></div></div></div>
+      </div>
+      <div class="card-bottom"><div class="card-meta"><strong>8 questions</strong> · 10 min</div><div class="card-status status-new">Drill</div></div>
+    </a>
+
+    <a class="module-card theme-mid" href="sat-practice.html?topic=Rhetorical+Purpose">
+      <div class="card-top">
+        <div class="card-arrow">→</div><div class="card-tag">🎯 English</div>
+        <div class="card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></div>
+        <div class="card-title">Rhetorical Purpose Drill</div>
+        <div class="card-sub">Function of sentences & structure<br>From all SAT papers</div>
+        <div class="prog-wrap"><div class="prog-label"><span>Questions</span><span>7</span></div><div class="prog-bar"><div class="prog-fill fill-mid" style="width:0%"></div></div></div>
+      </div>
+      <div class="card-bottom"><div class="card-meta"><strong>7 questions</strong> · 9 min</div><div class="card-status status-new">Drill</div></div>
+    </a>
+
+    <a class="module-card theme-mid" href="sat-practice.html?topic=Command+of+Evidence">
+      <div class="card-top">
+        <div class="card-arrow">→</div><div class="card-tag">⚖️ English</div>
+        <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M12 2l3 7h7l-5.5 4 2 7L12 17l-6.5 4 2-7L2 9h7z"/></svg></div>
+        <div class="card-title">Command of Evidence</div>
+        <div class="card-sub">Textual & quantitative evidence<br>From all SAT papers</div>
+        <div class="prog-wrap"><div class="prog-label"><span>Questions</span><span>5</span></div><div class="prog-bar"><div class="prog-fill fill-mid" style="width:0%"></div></div></div>
+      </div>
+      <div class="card-bottom"><div class="card-meta"><strong>5 questions</strong> · 6 min</div><div class="card-status status-new">Drill</div></div>
+    </a>
+
+    <a class="module-card theme-brown" href="sat-practice.html?topic=Math">
+      <div class="card-top">
+        <div class="card-arrow">→</div><div class="card-tag">✖️ Math</div>
+        <div class="card-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+        <div class="card-title">All Math Questions</div>
+        <div class="card-sub">Every math question combined<br>Algebra, geometry, advanced</div>
+        <div class="prog-wrap"><div class="prog-label"><span>Questions</span><span>40</span></div><div class="prog-bar"><div class="prog-fill fill-brown" style="width:0%"></div></div></div>
+      </div>
+      <div class="card-bottom"><div class="card-meta"><strong>40 questions</strong> · 50 min</div><div class="card-status status-new">Drill</div></div>
+    </a>
+
+  </div>
+
+  </div>
+
+  <!-- RECENT ACTIVITY -->
+  <div class="section-row">
+    <div class="section-title">Recent activity</div>
+  </div>
+  <div class="activity-list">
+    <div class="activity-item">
+      <div class="act-dot" style="background:#C4854A"></div>
+      <div class="act-text">
+        Practice 1 — English · Reading & Writing M1
+        <span>Today · 32 min · 18/27 answered</span>
+      </div>
+      <div class="act-score">67%</div>
+    </div>
+    <div class="activity-item">
+      <div class="act-dot" style="background:#3B6D11"></div>
+      <div class="act-text">
+        Full Mock Test · All sections
+        <span>Yesterday · 134 min · 93/93 answered</span>
+      </div>
+      <div class="act-score">1340</div>
+    </div>
+    <div class="activity-item">
+      <div class="act-dot" style="background:#4A3E33"></div>
+      <div class="act-text">
+        Practice 3 — Math · Module 1
+        <span>2 days ago · 35 min · 22/22 answered</span>
+      </div>
+      <div class="act-score">77%</div>
+    </div>
+    <div class="activity-item">
+      <div class="act-dot" style="background:#7B6B5A"></div>
+      <div class="act-text">
+        Practice 1 — English · Reading & Writing M1
+        <span>3 days ago · 32 min · 27/27 answered</span>
+      </div>
+      <div class="act-score">63%</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ── REAL AUTH CHECK + USER HYDRATION ────────────────────
+  SATAuth.init().then(async () => {
+    const session = await SATAuth.requireAuth('sat-login.html');
+    if (!session) return;
+    // Update UI with real session data
+    const u = session.user;
+    const meta = u.user_metadata || {};
+    const firstName = meta.first_name || meta.given_name || meta.full_name?.split(' ')[0] || u.email.split('@')[0];
+    const avatar = (meta.avatar || meta.picture) ? '' : (firstName[0] || '?').toUpperCase();
+    // Update name everywhere on page
+    const nameEl = document.getElementById('userName');
+    if (nameEl) nameEl.textContent = firstName;
+    const navAv = document.getElementById('navAvatar');
+    if (navAv) navAv.textContent = avatar || firstName[0].toUpperCase();
+  });
+
+  const user     = JSON.parse(localStorage.getItem('sat_user')     || '{}');
+  const profile  = JSON.parse(localStorage.getItem('sat_profile')  || '{}');
+  const progress = JSON.parse(localStorage.getItem('sat_progress') || '{}');
+
+  const rwSessions   = progress.rwSessions   || [];
+  const mathSessions = progress.mathSessions || [];
+  const mockSessions = progress.mockSessions || [];
+  const allSessions  = [...rwSessions,...mathSessions,...mockSessions].sort((a,b)=>new Date(a.date)-new Date(b.date));
+
+  function avgScore(sessions) {
+    if (!sessions.length) return null;
+    const avg = sessions.reduce((s,x)=>s+(x.score||0),0)/sessions.length;
+    return Math.round(avg/10)*10;
+  }
+  function accuracy(sessions) {
+    const c=sessions.reduce((s,x)=>s+(x.correct||0),0);
+    const t=sessions.reduce((s,x)=>s+(x.correct||0)+(x.wrong||0),0);
+    return t>0?Math.round(c/t*100):0;
+  }
+
+  // Name
+  const firstName = user.firstName || profile.name || 'there';
+  const nameEl = document.querySelector('.hero-name span');
+  if (nameEl) nameEl.textContent = firstName;
+
+  // Avatar
+  const avatarEl = document.querySelector('.avatar');
+  if (avatarEl) avatarEl.textContent = user.avatar || firstName[0] || 'S';
+
+  // Pills
+  const pillNums = document.querySelectorAll('.pill-num');
+  const overallAvg = avgScore(allSessions);
+  if (pillNums[0]) pillNums[0].textContent = overallAvg || '—';
+  if (pillNums[1]) pillNums[1].textContent = profile.targetScore || '1500';
+  if (pillNums[2]) pillNums[2].textContent = allSessions.length + '\uD83D\uDD25';
+  if (pillNums[3]) pillNums[3].textContent = progress.totalAnswered || 0;
+
+  // Quick stats
+  const qsNums = document.querySelectorAll('.qs-num');
+  if (qsNums[0]) qsNums[0].textContent = accuracy(rwSessions)+'%';
+  if (qsNums[1]) qsNums[1].textContent = accuracy(mathSessions)+'%';
+  if (qsNums[2]) qsNums[2].textContent = progress.totalAnswered||0;
+  if (qsNums[3]) qsNums[3].textContent = allSessions.length;
+
+  // Hero sub
+  const heroSub = document.querySelector('.hero-sub');
+  if (heroSub) {
+    if (!allSessions.length) {
+      heroSub.textContent = 'Welcome! Choose a practice module below to start tracking your progress.';
+    } else {
+      const gap = profile.targetScore && overallAvg ? profile.targetScore - overallAvg : null;
+      if (gap && gap > 0) heroSub.textContent = 'Your average score is '+overallAvg+'. You are '+gap+' points from your target of '+profile.targetScore+'. Keep going!';
+      else if (gap && gap <= 0) heroSub.textContent = 'You have hit your target score of '+profile.targetScore+'! Consider raising your goal.';
+      else heroSub.textContent = 'You have completed '+allSessions.length+' practice session'+(allSessions.length>1?'s':'')+'. Keep the momentum going!';
+    }
+  }
+
+  // Score progress bars section
+  function buildScoreCard(label,avg,count,max,color) {
+    const min = max===1600?400:200;
+    const pct = avg ? Math.round(((avg-min)/(max-min))*100) : 0;
+    return '<div style="background:var(--white);border:1px solid var(--pale);border-radius:12px;padding:20px 22px;">'
+      +'<div style="font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid);margin-bottom:10px;">'+label+'</div>'
+      +'<div style="font-family:Playfair Display,serif;font-size:32px;font-weight:900;color:var(--dark2);line-height:1;">'+(avg||'—')+'</div>'
+      +'<div style="font-size:12px;color:var(--light);margin-top:2px;">avg / '+max+' &middot; '+count+' session'+(count!==1?'s':'')+'</div>'
+      +'<div style="height:5px;background:var(--pale);border-radius:3px;overflow:hidden;margin-top:12px;">'
+      +'<div class="live-bar" data-pct="'+pct+'" style="width:0%;height:100%;background:'+color+';border-radius:3px;transition:width 1s ease .3s;"></div>'
+      +'</div></div>';
+  }
+
+  const progSection = document.createElement('div');
+  progSection.style.marginBottom = '40px';
+  progSection.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">'
+    +'<div style="font-family:Playfair Display,serif;font-size:20px;font-weight:700;color:var(--dark2);">Score progress</div>'
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;">'
+    +buildScoreCard('Reading & Writing', avgScore(rwSessions), rwSessions.length, 800, '#C4854A')
+    +buildScoreCard('Math', avgScore(mathSessions), mathSessions.length, 800, '#4A3E33')
+    +buildScoreCard('Full Mock Test', avgScore(mockSessions), mockSessions.length, 1600, '#3B6D11')
+    +'</div>';
+  const modulesSection = document.querySelector('.section-row');
+  if (modulesSection) modulesSection.parentNode.insertBefore(progSection, modulesSection);
+
+  // Animate bars
+  window.addEventListener('load', () => {
+    document.querySelectorAll('.live-bar,.prog-fill').forEach(bar => {
+      const target = bar.dataset.pct ? bar.dataset.pct+'%' : bar.style.width;
+      bar.style.width = '0%';
+      setTimeout(()=>{ bar.style.width = target; }, 400);
+    });
+  });
+
+  // Recent activity
+  const actList = document.querySelector('.activity-list');
+  if (actList) {
+    if (!allSessions.length) {
+      actList.innerHTML = '<div style="padding:24px;text-align:center;color:var(--mid);font-size:14px;background:var(--white);border:1px solid var(--pale);border-radius:10px;">No sessions yet. Start practicing to see your activity here!</div>';
+    } else {
+      actList.innerHTML = allSessions.slice().reverse().slice(0,5).map(s=>{
+        const d = new Date(s.date);
+        const ds = d.toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+        const tot = (s.correct||0)+(s.wrong||0)+(s.skipped||0);
+        return '<div class="activity-item"><div class="act-dot" style="background:#C4854A"></div>'
+          +'<div class="act-text">Practice session<span>'+ds+' &middot; '+tot+' questions &middot; '+(s.correct||0)+' correct</span></div>'
+          +'<div class="act-score">'+(s.score||'—')+'</div></div>';
+      }).join('');
+    }
+  }
+
+  // Exam countdown
+  if (profile.examDate && profile.examDate !== 'not-decided') {
+    const DATES={mar26:'March 8, 2026',may26:'May 2, 2026',jun26:'June 6, 2026',aug26:'August 29, 2026',oct26:'October 3, 2026',nov26:'November 7, 2026'};
+    const examStr=DATES[profile.examDate];
+    if (examStr) {
+      const days=Math.ceil((new Date(examStr)-new Date())/86400000);
+      if (days>0&&heroSub) heroSub.textContent+=' '+days+' days until your exam ('+examStr+').';
+    }
+  }
+
+  async function handleSignOut() {
+    await SATAuth.init();
+    await SATAuth.signOut();
+    window.location.href = 'sat-landing.html';
+  }
+</script>
+</body>
+</html>

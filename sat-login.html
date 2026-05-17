@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sign In — SAT Platform</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="sat-auth.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:      #F2EDE6;
+    --bg2:     #EDE4D9;
+    --bg3:     #E4D8C8;
+    --dark:    #2C231A;
+    --dark2:   #4A3E33;
+    --mid:     #7B6B5A;
+    --light:   #C4AE96;
+    --pale:    #D9CDBE;
+    --accent:  #C4854A;
+    --accent2: #E8C49A;
+    --white:   #FAF7F2;
+    --err:     #B94040;
+  }
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); font-family:'DM Sans',sans-serif; color:var(--dark); min-height:100vh; display:flex; flex-direction:column; }
+
+  nav { display:flex; align-items:center; justify-content:space-between; padding:0 48px; height:64px; background:var(--bg2); border-bottom:1px solid var(--pale); }
+  .logo { font-family:'Playfair Display',serif; font-size:26px; font-weight:900; color:var(--dark2); text-decoration:none; }
+  .logo span { color:var(--accent); }
+  .nav-right { font-size:14px; color:var(--mid); }
+  .nav-right a { color:var(--accent); text-decoration:none; font-weight:500; }
+  .nav-right a:hover { text-decoration:underline; }
+
+  .page { display:grid; grid-template-columns:1fr 1fr; flex:1; min-height:calc(100vh - 64px); }
+
+  /* LEFT */
+  .left-panel { background:var(--dark2); padding:64px 56px; display:flex; flex-direction:column; justify-content:center; position:relative; overflow:hidden; }
+  .left-panel::before { content:''; position:absolute; top:-80px; right:-80px; width:360px; height:360px; border-radius:50%; border:50px solid rgba(196,133,74,0.1); animation:spinRing 22s linear infinite; }
+  .left-panel::after { content:''; position:absolute; bottom:-60px; left:-60px; width:240px; height:240px; border-radius:50%; border:35px solid rgba(196,174,150,0.08); animation:spinRing 16s linear infinite reverse; }
+  @keyframes spinRing { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+
+  .panel-tag { display:inline-block; background:rgba(196,133,74,0.2); color:var(--accent2); font-size:11px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; padding:5px 14px; border-radius:100px; margin-bottom:24px; width:fit-content; }
+  .panel-h1 { font-family:'Playfair Display',serif; font-size:clamp(28px,3vw,44px); font-weight:900; color:var(--white); line-height:1.1; margin-bottom:16px; }
+  .panel-h1 em { color:var(--accent2); font-style:italic; }
+  .panel-p { font-size:15px; color:var(--light); line-height:1.75; font-weight:300; max-width:340px; margin-bottom:48px; }
+
+  /* SCORE CARD DECORATION */
+  .score-card { background:rgba(255,255,255,0.06); border:1px solid rgba(196,174,150,0.2); border-radius:14px; padding:20px 24px; max-width:300px; position:relative; z-index:1; animation:floatCard 5s ease-in-out infinite; }
+  @keyframes floatCard { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-8px);} }
+  .score-card-label { font-size:11px; color:var(--light); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:12px; }
+  .score-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+  .score-big { font-family:'Playfair Display',serif; font-size:42px; font-weight:900; color:var(--accent2); }
+  .score-delta { background:rgba(59,109,17,0.25); color:#A8D470; font-size:13px; font-weight:500; padding:4px 10px; border-radius:100px; }
+  .score-bar-wrap { margin-bottom:6px; }
+  .score-bar-label { display:flex; justify-content:space-between; font-size:11px; color:var(--light); margin-bottom:4px; }
+  .score-bar { height:5px; background:rgba(255,255,255,0.1); border-radius:3px; overflow:hidden; }
+  .score-fill { height:100%; border-radius:3px; background:var(--accent); }
+  .score-fill.green { background:#639922; }
+
+  /* RIGHT FORM */
+  .right-panel { background:var(--white); display:flex; align-items:center; justify-content:center; padding:56px 64px; }
+  .form-box { width:100%; max-width:400px; }
+  .form-header { margin-bottom:36px; }
+  .form-header h2 { font-family:'Playfair Display',serif; font-size:32px; font-weight:700; color:var(--dark2); margin-bottom:6px; }
+  .form-header p { font-size:14px; color:var(--mid); font-weight:300; }
+
+  .field { margin-bottom:18px; }
+  .field label { display:block; font-size:12px; font-weight:500; color:var(--dark2); margin-bottom:6px; letter-spacing:0.03em; }
+  .field input { width:100%; height:46px; padding:0 14px; background:var(--bg); border:1.5px solid var(--pale); border-radius:8px; font-size:14px; color:var(--dark); font-family:'DM Sans',sans-serif; outline:none; transition:border-color .2s; }
+  .field input:focus { border-color:var(--accent); }
+  .field input.error { border-color:var(--err); }
+  .field .err-msg { font-size:11px; color:var(--err); margin-top:4px; display:none; }
+  .field input.error + .err-msg { display:block; }
+
+  .field-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .field-row label { font-size:12px; font-weight:500; color:var(--dark2); letter-spacing:0.03em; }
+  .field-row a { font-size:12px; color:var(--accent); text-decoration:none; }
+  .field-row a:hover { text-decoration:underline; }
+
+  .pw-wrap { position:relative; }
+  .pw-wrap input { padding-right:44px; }
+  .pw-toggle { position:absolute; right:14px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; padding:0; color:var(--mid); display:flex; align-items:center; }
+  .pw-toggle svg { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+
+  .remember-row { display:flex; align-items:center; gap:8px; margin-bottom:24px; }
+  .remember-row input[type=checkbox] { width:15px; height:15px; accent-color:var(--accent); cursor:pointer; }
+  .remember-row label { font-size:13px; color:var(--mid); cursor:pointer; }
+
+  .btn-submit { width:100%; height:48px; background:var(--dark2); color:var(--white); border:none; border-radius:8px; font-size:15px; font-weight:500; cursor:pointer; font-family:'DM Sans',sans-serif; transition:background .2s; }
+  .btn-submit:hover { background:var(--accent); }
+  .btn-submit:active { transform:scale(0.99); }
+
+  .divider { display:flex; align-items:center; gap:12px; margin:20px 0; }
+  .divider::before, .divider::after { content:''; flex:1; height:1px; background:var(--pale); }
+  .divider span { font-size:12px; color:var(--light); }
+
+  .btn-google { width:100%; height:44px; background:var(--bg); border:1.5px solid var(--pale); border-radius:8px; font-size:14px; color:var(--dark2); cursor:pointer; font-family:'DM Sans',sans-serif; display:flex; align-items:center; justify-content:center; gap:10px; transition:border-color .2s; }
+  .btn-google:hover { border-color:var(--accent); }
+  .btn-google svg { width:18px; height:18px; }
+
+  .bottom-link { text-align:center; font-size:13px; color:var(--mid); margin-top:24px; }
+  .bottom-link a { color:var(--accent); text-decoration:none; font-weight:500; }
+  .bottom-link a:hover { text-decoration:underline; }
+
+  /* ERROR BANNER */
+  .error-banner { background:rgba(185,64,64,0.1); border:1px solid rgba(185,64,64,0.3); border-radius:8px; padding:12px 16px; font-size:13px; color:var(--err); margin-bottom:20px; display:none; }
+
+  /* SUCCESS */
+  .success-overlay { display:none; position:absolute; inset:0; background:var(--white); flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px; z-index:10; border-radius:0; }
+  .right-panel { position:relative; }
+  .success-overlay.show { display:flex; }
+  .success-icon { width:72px; height:72px; border-radius:50%; background:rgba(59,109,17,0.1); display:flex; align-items:center; justify-content:center; margin:0 auto 20px; }
+  .success-icon svg { width:34px; height:34px; stroke:#3B6D11; fill:none; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+  .success-overlay h2 { font-family:'Playfair Display',serif; font-size:26px; font-weight:700; color:var(--dark2); margin-bottom:8px; }
+  .success-overlay p { font-size:14px; color:var(--mid); margin-bottom:28px; font-weight:300; }
+  .btn-go { display:inline-block; background:var(--dark2); color:var(--white); text-decoration:none; padding:13px 32px; border-radius:8px; font-size:14px; font-weight:500; font-family:'DM Sans',sans-serif; transition:background .2s; cursor:pointer; border:none; }
+  .btn-go:hover { background:var(--accent); }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
+  .form-box { animation:fadeUp .5s ease both; }
+
+  @media(max-width:768px){
+    .page { grid-template-columns:1fr; }
+    .left-panel { display:none; }
+    .right-panel { padding:40px 28px; }
+    nav { padding:0 24px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="sat-landing.html" class="logo">S<span>AT</span></a>
+  <div class="nav-right">New here? <a href="sat-signup.html">Create free account</a></div>
+</nav>
+
+<div class="page">
+
+  <!-- LEFT -->
+  <div class="left-panel">
+    <div class="panel-tag">Welcome back</div>
+    <h1 class="panel-h1">Keep pushing<br>toward your<br><em>target score.</em></h1>
+    <p class="panel-p">Your progress is saved and waiting for you. Jump back in and keep the momentum going.</p>
+
+    <div class="score-card">
+      <div class="score-card-label">Your latest progress</div>
+      <div class="score-row">
+        <div class="score-big">1340</div>
+        <div class="score-delta">+80 pts</div>
+      </div>
+      <div class="score-bar-wrap">
+        <div class="score-bar-label"><span>Reading & Writing</span><span>690</span></div>
+        <div class="score-bar"><div class="score-fill" style="width:69%"></div></div>
+      </div>
+      <div style="margin-top:10px;" class="score-bar-wrap">
+        <div class="score-bar-label"><span>Math</span><span>650</span></div>
+        <div class="score-bar"><div class="score-fill green" style="width:65%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right-panel">
+    <div class="form-box">
+      <div class="form-header">
+        <h2>Welcome back</h2>
+        <p>Sign in to continue your SAT prep.</p>
+      </div>
+
+      <div class="error-banner" id="errBanner">Incorrect email or password. Please try again.</div>
+
+      <form id="loginForm" novalidate>
+        <div class="field">
+          <label for="email">Email address</label>
+          <input type="email" id="email" placeholder="aisha@email.com" autocomplete="email"/>
+          <div class="err-msg">Please enter a valid email</div>
+        </div>
+
+        <div class="field">
+          <div class="field-row">
+            <label for="password">Password</label>
+            <a href="#">Forgot password?</a>
+          </div>
+          <div class="pw-wrap">
+            <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password"/>
+            <button type="button" class="pw-toggle" id="pwToggle" aria-label="Show password">
+              <svg id="eyeIcon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="err-msg">Please enter your password</div>
+        </div>
+
+        <div class="remember-row">
+          <input type="checkbox" id="remember" checked/>
+          <label for="remember">Keep me signed in</label>
+        </div>
+
+        <button type="submit" class="btn-submit">Sign in</button>
+
+        <div class="divider"><span>or</span></div>
+
+        <button type="button" class="btn-google" onclick="googleAuth()">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          Continue with Google
+        </button>
+      </form>
+
+      <div class="bottom-link">Don't have an account? <a href="sat-signup.html">Sign up free</a></div>
+    </div>
+
+    <!-- SUCCESS OVERLAY -->
+    <div class="success-overlay" id="successOverlay">
+      <div class="success-icon">
+        <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+      </div>
+      <h2>You're in!</h2>
+      <p>Welcome back. Your progress is ready and waiting.</p>
+      <button class="btn-go" onclick="window.location.href='sat-dashboard.html'">Go to my dashboard →</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Password visibility toggle
+  const pwInput = document.getElementById('password');
+  document.getElementById('pwToggle').addEventListener('click', () => {
+    const isText = pwInput.type === 'text';
+    pwInput.type = isText ? 'password' : 'text';
+    document.getElementById('eyeIcon').innerHTML = isText
+      ? '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'
+      : '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+  });
+
+  // ── HELPERS ─────────────────────────────────────────────
+  function showError(msg) {
+    let el = document.getElementById('authError');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'authError';
+      el.style.cssText = 'background:#FCEBEB;border:1px solid #F9BABA;color:#B94040;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px;text-align:center;';
+      const form = document.getElementById('loginForm');
+      form.insertBefore(el, form.firstChild);
+    }
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+  function hideError() { const el = document.getElementById('authError'); if(el) el.style.display='none'; }
+  function setLoading(loading) {
+    const btn = document.querySelector('.btn-submit');
+    if(!btn) return;
+    btn.disabled = loading;
+    btn.textContent = loading ? 'Signing in...' : 'Sign in →';
+    btn.style.opacity = loading ? '0.7' : '1';
+  }
+
+  // ── INIT: redirect if already logged in ─────────────────
+  SATAuth.init().then(() => {
+    SATAuth.redirectIfLoggedIn('sat-dashboard.html');
+  });
+
+  // ── FORM SUBMIT — REAL SUPABASE LOGIN ───────────────────
+  document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    hideError();
+
+    const emailEl = document.getElementById('email');
+    const pwEl    = document.getElementById('password');
+    let valid = true;
+
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailEl.value)) { emailEl.classList.add('error'); valid = false; }
+    else emailEl.classList.remove('error');
+
+    if(!pwEl.value.trim()) { pwEl.classList.add('error'); valid = false; }
+    else pwEl.classList.remove('error');
+
+    if(!valid) return;
+
+    setLoading(true);
+
+    try {
+      const data = await SATAuth.signIn({
+        email:    emailEl.value.trim(),
+        password: pwEl.value
+      });
+
+      // Sync user info to localStorage
+      const u    = data.user;
+      const meta = u.user_metadata || {};
+      localStorage.setItem('sat_user', JSON.stringify({
+        id:        u.id,
+        email:     u.email,
+        name:      meta.full_name || meta.name || u.email.split('@')[0],
+        firstName: meta.first_name || meta.given_name || u.email.split('@')[0],
+        avatar:    meta.avatar || (u.email[0]).toUpperCase(),
+        provider:  'email'
+      }));
+
+      // Show success then redirect
+      document.getElementById('successOverlay').classList.add('show');
+      setTimeout(() => { window.location.href = 'sat-dashboard.html'; }, 1400);
+
+    } catch(err) {
+      setLoading(false);
+      const msg = err.message || '';
+      if (msg.includes('Invalid login') || msg.includes('invalid_credentials') || msg.includes('Invalid email or password')) {
+        showError('Incorrect email or password. Please try again.');
+      } else if (msg.includes('Email not confirmed')) {
+        showError('Please confirm your email first. Check your inbox for a confirmation link.');
+      } else if (msg.includes('Too many requests')) {
+        showError('Too many attempts. Please wait a minute and try again.');
+      } else {
+        showError(msg || 'Sign in failed. Please try again.');
+      }
+    }
+  });
+
+  // ── GOOGLE OAUTH — REAL ──────────────────────────────────
+  function googleAuth() {
+    SATAuth.signInWithGoogle().catch(err => {
+      showError('Google sign-in failed: ' + (err.message || 'Unknown error'));
+    });
+  }
+
+  // ── FORGOT PASSWORD ───────────────────────────────────────
+  async function forgotPassword() {
+    const emailEl = document.getElementById('email');
+    const email   = emailEl.value.trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      emailEl.classList.add('error');
+      showError('Enter your email address above first, then click Forgot password.');
+      return;
+    }
+    try {
+      await SATAuth.resetPassword(email);
+      showError(''); // clear error
+      const el = document.getElementById('authError');
+      if (el) { el.style.background='#EAF3DE'; el.style.borderColor='#B8D9A0'; el.style.color='#3B6D11'; el.textContent='Password reset email sent! Check your inbox.'; el.style.display='block'; }
+    } catch(err) {
+      showError('Could not send reset email: ' + (err.message || 'Unknown error'));
+    }
+  }
+</script>
+</body>
+</html>

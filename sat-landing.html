@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SAT Platform — Ace the SAT</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:       #F2EDE6;
+    --bg2:      #EDE4D9;
+    --bg3:      #E4D8C8;
+    --dark:     #2C231A;
+    --dark2:    #4A3E33;
+    --mid:      #7B6B5A;
+    --light:    #C4AE96;
+    --pale:     #D9CDBE;
+    --accent:   #C4854A;
+    --accent2:  #E8C49A;
+    --white:    #FAF7F2;
+  }
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--dark); overflow-x: hidden; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg2); }
+  ::-webkit-scrollbar-thumb { background: var(--light); border-radius: 3px; }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 56px; height: 68px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--pale);
+    backdrop-filter: blur(8px);
+  }
+  .logo { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 900; color: var(--dark2); letter-spacing: -0.02em; }
+  .logo span { color: var(--accent); }
+  .nav-links { display: flex; gap: 32px; }
+  .nav-links a { font-size: 14px; color: var(--mid); text-decoration: none; font-weight: 400; transition: color .2s; }
+  .nav-links a:hover { color: var(--accent); }
+  .nav-actions { display: flex; gap: 12px; align-items: center; }
+  .btn-ghost-sm { background: transparent; color: var(--dark2); border: 1.5px solid var(--light); padding: 9px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .2s; text-decoration: none; display: inline-block; }
+  .btn-ghost-sm:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-nav { background: var(--dark2); color: var(--bg); border: none; padding: 10px 22px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: background .2s; text-decoration: none; display: inline-block; }
+  .btn-nav:hover { background: var(--accent); }
+
+  /* ── HERO ── */
+  .hero {
+    display: grid; grid-template-columns: 1fr 1fr;
+    min-height: 560px; align-items: center;
+    padding: 80px 56px 80px;
+    gap: 56px;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; top: -120px; right: -120px;
+    width: 520px; height: 520px;
+    border-radius: 50%;
+    border: 60px solid var(--bg3);
+    opacity: 0.5;
+    animation: spin-slow 30s linear infinite;
+  }
+  .hero-tag {
+    display: inline-block;
+    background: var(--light); color: var(--dark2);
+    font-size: 11px; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 5px 14px; border-radius: 100px;
+    margin-bottom: 22px;
+    animation: fadeUp .6s ease both;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(40px, 5vw, 62px);
+    font-weight: 900; line-height: 1.07; color: var(--dark);
+    margin-bottom: 22px;
+    animation: fadeUp .6s ease .1s both;
+  }
+  .hero h1 em { color: var(--accent); font-style: italic; }
+  .hero-desc {
+    font-size: 16px; color: var(--mid); line-height: 1.75;
+    margin-bottom: 36px; max-width: 440px; font-weight: 300;
+    animation: fadeUp .6s ease .2s both;
+  }
+  .hero-btns { display: flex; gap: 14px; flex-wrap: wrap; animation: fadeUp .6s ease .3s both; }
+  .btn-primary { background: var(--dark2); color: var(--bg); border: none; padding: 14px 30px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: background .2s; text-decoration: none; display: inline-block; }
+  .btn-primary:hover { background: var(--accent); }
+  .btn-outline { background: transparent; color: var(--dark2); border: 1.5px solid var(--light); padding: 14px 30px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .2s; text-decoration: none; display: inline-block; }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── BOOK SCENE ── */
+  .hero-right { display: flex; align-items: center; justify-content: center; position: relative; animation: fadeUp .6s ease .15s both; }
+  .book-stage { width: 300px; height: 300px; position: relative; }
+  .b1 { position: absolute; top: 10px; left: 20px; animation: float1 4s ease-in-out infinite; }
+  .b2 { position: absolute; top: 90px; right: 0px; animation: float2 4.8s ease-in-out infinite .4s; }
+  .b3 { position: absolute; bottom: 20px; left: 55px; animation: float3 3.6s ease-in-out infinite .8s; }
+  .pencil { position: absolute; top: 28px; right: 50px; animation: wiggle 2.2s ease-in-out infinite; transform-origin: bottom center; }
+  .ring { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 210px; height: 210px; border-radius: 50%; border: 2px dashed var(--light); animation: spin-slow 20s linear infinite; }
+  .star1 { position: absolute; bottom: 55px; right: 14px; animation: pulse 2.6s ease-in-out infinite; }
+  .star2 { position: absolute; top: 18px; right: 10px; animation: pulse 3s ease-in-out infinite .5s; }
+  .dot { position: absolute; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); opacity: 0.7; }
+  .dot1 { top: 60px; left: 15px; animation: pulse 2s ease-in-out infinite; }
+  .dot2 { bottom: 70px; right: 55px; animation: pulse 2.4s ease-in-out infinite .7s; }
+
+  /* ── STATS ── */
+  .stats { display: grid; grid-template-columns: repeat(4,1fr); background: var(--dark2); }
+  .stat { padding: 30px 28px; text-align: center; border-right: 1px solid #6B5A4A; }
+  .stat:last-child { border-right: none; }
+  .stat-num { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 700; color: var(--accent2); }
+  .stat-lbl { font-size: 12px; color: var(--light); margin-top: 5px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 300; }
+
+  /* ── HOW IT WORKS ── */
+  .how { padding: 90px 56px; background: var(--white); }
+  .sec-tag { font-size: 11px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mid); margin-bottom: 12px; }
+  .sec-h2 { font-family: 'Playfair Display', serif; font-size: clamp(28px,3.5vw,42px); font-weight: 700; color: var(--dark); margin-bottom: 56px; max-width: 480px; line-height: 1.18; }
+  .steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 32px; }
+  .step { position: relative; padding-left: 24px; border-left: 2px solid var(--pale); }
+  .step-num { font-family: 'Playfair Display', serif; font-size: 48px; font-weight: 900; color: var(--pale); line-height: 1; margin-bottom: 12px; }
+  .step h3 { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: var(--dark2); margin-bottom: 8px; }
+  .step p { font-size: 14px; color: var(--mid); line-height: 1.7; font-weight: 300; }
+
+  /* ── FEATURES ── */
+  .features { padding: 90px 56px; background: var(--bg2); }
+  .feat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 22px; }
+  .feat-card { background: var(--bg); border: 1px solid var(--pale); border-radius: 14px; padding: 28px 24px; transition: border-color .25s, transform .25s; }
+  .feat-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+  .feat-icon { width: 44px; height: 44px; border-radius: 10px; background: var(--bg3); display: flex; align-items: center; justify-content: center; margin-bottom: 18px; }
+  .feat-icon svg { width: 22px; height: 22px; stroke: var(--dark2); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .feat-card h3 { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: var(--dark2); margin-bottom: 10px; }
+  .feat-card p { font-size: 13px; color: var(--mid); line-height: 1.65; font-weight: 300; }
+
+  /* ── TESTIMONIALS ── */
+  .testimonials { padding: 90px 56px; background: var(--bg); }
+  .testi-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; margin-top: 52px; }
+  .testi-card { background: var(--white); border: 1px solid var(--pale); border-radius: 14px; padding: 28px; }
+  .testi-stars { display: flex; gap: 4px; margin-bottom: 16px; }
+  .star-icon { width: 14px; height: 14px; fill: var(--accent); }
+  .testi-text { font-size: 14px; color: var(--mid); line-height: 1.7; font-style: italic; font-weight: 300; margin-bottom: 20px; }
+  .testi-author { display: flex; align-items: center; gap: 12px; }
+  .testi-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--bg3); display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: var(--dark2); }
+  .testi-name { font-size: 13px; font-weight: 500; color: var(--dark2); }
+  .testi-role { font-size: 12px; color: var(--light); }
+
+  /* ── WHO ── */
+  .who { padding: 90px 56px; background: var(--bg2); }
+  .who-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 18px; margin-top: 48px; }
+  .who-card { background: var(--bg); border: 1px solid var(--pale); border-radius: 14px; padding: 24px; transition: border-color .2s; }
+  .who-card:hover { border-color: var(--accent); }
+  .who-dot { width: 10px; height: 10px; border-radius: 50%; margin-bottom: 14px; }
+  .who-card h4 { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; color: var(--dark2); margin-bottom: 6px; }
+  .who-card p { font-size: 13px; color: var(--mid); font-weight: 300; line-height: 1.6; }
+
+  /* ── CTA ── */
+  .cta { padding: 100px 56px; background: var(--dark2); text-align: center; position: relative; overflow: hidden; }
+  .cta::before { content: ''; position: absolute; top: -80px; left: 50%; transform: translateX(-50%); width: 500px; height: 500px; border-radius: 50%; border: 80px solid rgba(196,133,74,0.08); }
+  .cta h2 { font-family: 'Playfair Display', serif; font-size: clamp(30px,4vw,50px); font-weight: 900; color: var(--bg); margin-bottom: 16px; position: relative; }
+  .cta p { font-size: 16px; color: var(--light); margin-bottom: 40px; font-weight: 300; position: relative; }
+  .btn-cream { background: var(--accent2); color: var(--dark2); border: none; padding: 16px 40px; border-radius: 8px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .2s; text-decoration: none; display: inline-block; }
+  .btn-cream:hover { background: var(--accent); color: var(--white); }
+
+  /* ── FOOTER ── */
+  footer { background: var(--dark); padding: 40px 56px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  .footer-logo { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 900; color: var(--bg2); }
+  .footer-logo span { color: var(--accent); }
+  .footer-links { display: flex; gap: 24px; }
+  .footer-links a { font-size: 13px; color: var(--mid); text-decoration: none; transition: color .2s; }
+  .footer-links a:hover { color: var(--accent); }
+  .footer-copy { font-size: 12px; color: var(--mid); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp { from { opacity:0; transform:translateY(22px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes float1 { 0%,100%{transform:translateY(0) rotate(-3deg);} 50%{transform:translateY(-16px) rotate(2deg);} }
+  @keyframes float2 { 0%,100%{transform:translateY(0) rotate(4deg);} 50%{transform:translateY(-12px) rotate(-2deg);} }
+  @keyframes float3 { 0%,100%{transform:translateY(0) rotate(-1deg);} 50%{transform:translateY(-10px) rotate(3deg);} }
+  @keyframes wiggle { 0%,100%{transform:rotate(-4deg);} 50%{transform:rotate(4deg);} }
+  @keyframes spin-slow { from{transform:rotate(0deg) translate(-50%,-50%);} to{transform:rotate(360deg) translate(-50%,-50%);} }
+  @keyframes pulse { 0%,100%{opacity:.5;transform:scale(1);} 50%{opacity:1;transform:scale(1.15);} }
+
+  /* fix spin on hero::before (no translate) */
+  .hero::before { transform-origin: center center; animation: spinBg 30s linear infinite; }
+  @keyframes spinBg { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+
+  /* ── SCROLL REVEAL ── */
+  .reveal { opacity:0; transform:translateY(28px); transition: opacity .6s ease, transform .6s ease; }
+  .reveal.visible { opacity:1; transform:translateY(0); }
+
+  /* ── RESPONSIVE ── */
+  @media(max-width:768px){
+    nav { padding: 0 24px; }
+    .nav-links { display: none; }
+    .hero { grid-template-columns: 1fr; padding: 48px 24px; text-align: center; }
+    .hero-right { display: none; }
+    .hero-desc { max-width: 100%; }
+    .hero-btns { justify-content: center; }
+    .stats { grid-template-columns: repeat(2,1fr); }
+    .how, .features, .testimonials, .who, .cta { padding: 60px 24px; }
+    .steps { grid-template-columns: 1fr; }
+    .testi-grid { grid-template-columns: 1fr; }
+    footer { flex-direction: column; text-align: center; padding: 32px 24px; }
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="sat-auth.js"></script>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">S<span>AT</span></div>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#how">How it works</a>
+    <a href="#who">Who it's for</a>
+  </div>
+  <div class="nav-actions">
+    <a href="sat-login.html" class="btn-ghost-sm">Sign in</a>
+    <a href="sat-signup.html" class="btn-nav">Sign up free</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-tag">Scholastic Aptitude Test Prep</div>
+    <h1>Master the SAT<br>with <em>confidence</em></h1>
+    <p class="hero-desc">A modern practice platform built for students — real SAT-style questions, adaptive difficulty, and instant score analytics to help you reach your target score.</p>
+    <div class="hero-btns">
+      <a href="sat-signup.html" class="btn-primary">Start practicing free</a>
+      <a href="#how" class="btn-outline">See how it works</a>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="book-stage">
+      <div class="ring"></div>
+
+      <!-- Big brown book -->
+      <div class="b1">
+        <svg width="100" height="124" viewBox="0 0 100 124" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="4" width="84" height="112" rx="7" fill="#7B6B5A"/>
+          <rect x="16" y="4" width="70" height="112" rx="5" fill="#C4AE96"/>
+          <rect x="8" y="4" width="12" height="112" rx="4" fill="#4A3E33"/>
+          <rect x="26" y="24" width="46" height="4" rx="2" fill="#9E8A77" opacity=".7"/>
+          <rect x="26" y="34" width="38" height="4" rx="2" fill="#9E8A77" opacity=".7"/>
+          <rect x="26" y="44" width="42" height="4" rx="2" fill="#9E8A77" opacity=".7"/>
+          <rect x="26" y="54" width="30" height="4" rx="2" fill="#9E8A77" opacity=".5"/>
+          <rect x="26" y="64" width="36" height="4" rx="2" fill="#9E8A77" opacity=".5"/>
+          <text x="50" y="96" text-anchor="middle" font-family="Playfair Display,serif" font-size="16" font-weight="700" fill="#4A3E33">SAT</text>
+        </svg>
+      </div>
+
+      <!-- Orange accent book -->
+      <div class="b2">
+        <svg width="78" height="100" viewBox="0 0 78 100" fill="none">
+          <rect x="6" y="4" width="66" height="90" rx="6" fill="#C4854A"/>
+          <rect x="14" y="4" width="52" height="90" rx="4" fill="#E8C49A"/>
+          <rect x="6" y="4" width="10" height="90" rx="4" fill="#8B5A30"/>
+          <rect x="22" y="18" width="34" height="3" rx="1.5" fill="#C4854A" opacity=".55"/>
+          <rect x="22" y="27" width="26" height="3" rx="1.5" fill="#C4854A" opacity=".55"/>
+          <rect x="22" y="36" width="30" height="3" rx="1.5" fill="#C4854A" opacity=".55"/>
+          <rect x="22" y="45" width="20" height="3" rx="1.5" fill="#C4854A" opacity=".4"/>
+          <text x="40" y="70" text-anchor="middle" font-family="Playfair Display,serif" font-size="12" font-weight="700" fill="#8B5A30">PREP</text>
+        </svg>
+      </div>
+
+      <!-- Small pale book -->
+      <div class="b3">
+        <svg width="84" height="106" viewBox="0 0 84 106" fill="none">
+          <rect x="7" y="4" width="70" height="94" rx="6" fill="#9E8A77"/>
+          <rect x="15" y="4" width="56" height="94" rx="4" fill="#F2EDE6"/>
+          <rect x="7" y="4" width="10" height="94" rx="4" fill="#4A3E33"/>
+          <rect x="22" y="18" width="38" height="3" rx="1.5" fill="#9E8A77" opacity=".65"/>
+          <rect x="22" y="27" width="28" height="3" rx="1.5" fill="#9E8A77" opacity=".65"/>
+          <rect x="22" y="36" width="34" height="3" rx="1.5" fill="#9E8A77" opacity=".65"/>
+          <rect x="22" y="45" width="22" height="3" rx="1.5" fill="#9E8A77" opacity=".5"/>
+          <text x="42" y="72" text-anchor="middle" font-family="Playfair Display,serif" font-size="11" font-weight="700" fill="#4A3E33">MATH</text>
+        </svg>
+      </div>
+
+      <!-- Pencil -->
+      <div class="pencil">
+        <svg width="16" height="88" viewBox="0 0 16 88" fill="none">
+          <rect x="2" y="8" width="12" height="64" rx="2" fill="#E8C49A"/>
+          <rect x="2" y="8" width="12" height="10" rx="2" fill="#C4854A"/>
+          <rect x="2" y="66" width="12" height="8" fill="#D4B896"/>
+          <polygon points="2,74 14,74 8,88" fill="#F2EDE6"/>
+          <polygon points="4,80 12,80 8,88" fill="#C4854A" opacity=".7"/>
+          <rect x="5" y="10" width="2" height="60" rx="1" fill="#4A3E33" opacity=".15"/>
+        </svg>
+      </div>
+
+      <!-- Stars -->
+      <div class="star1">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <polygon points="14,2 17,10.5 26,10.5 19,16 21.5,25 14,20 6.5,25 9,16 2,10.5 11,10.5" fill="#C4854A" opacity=".9"/>
+        </svg>
+      </div>
+      <div class="star2">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <polygon points="9,1 11,7 17,7 12.5,10.5 14.5,17 9,13 3.5,17 5.5,10.5 1,7 7,7" fill="#C4AE96" opacity=".8"/>
+        </svg>
+      </div>
+      <div class="dot dot1"></div>
+      <div class="dot dot2"></div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat"><div class="stat-num">10,000+</div><div class="stat-lbl">Practice questions</div></div>
+  <div class="stat"><div class="stat-num">4</div><div class="stat-lbl">Test sections</div></div>
+  <div class="stat"><div class="stat-num">Real-time</div><div class="stat-lbl">Score analytics</div></div>
+  <div class="stat"><div class="stat-num">Free</div><div class="stat-lbl">To get started</div></div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+  <div class="sec-tag reveal">How it works</div>
+  <div class="sec-h2 reveal">Three steps to a higher score</div>
+  <div class="steps">
+    <div class="step reveal">
+      <div class="step-num">01</div>
+      <h3>Create your account</h3>
+      <p>Sign up for free in under a minute. Set your target score and let the platform build a personalized practice plan for you.</p>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">02</div>
+      <h3>Practice daily</h3>
+      <p>Work through adaptive questions across Reading, Writing, and Math. Get instant explanations for every answer — right or wrong.</p>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">03</div>
+      <h3>Track your growth</h3>
+      <p>Watch your score climb with detailed analytics. See exactly where you're improving and where to focus next.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="sec-tag reveal">Features</div>
+  <div class="sec-h2 reveal">Everything you need to prepare</div>
+  <div class="feat-grid">
+    <div class="feat-card reveal">
+      <div class="feat-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg>
+      </div>
+      <h3>Adaptive questions</h3>
+      <p>Our system adjusts difficulty based on your performance — just like the real digital SAT.</p>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zM12 6v6l4 2"/></svg>
+      </div>
+      <h3>Timed mock tests</h3>
+      <p>Full-length timed exams that simulate real test-day conditions, section by section.</p>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon">
+        <svg viewBox="0 0 24 24"><path d="M3 3h18v18H3zM3 9h18M9 21V9"/></svg>
+      </div>
+      <h3>Score analytics</h3>
+      <p>Visual dashboards show your score trends, time spent, and topic-by-topic breakdown.</p>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon">
+        <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/></svg>
+      </div>
+      <h3>Instant explanations</h3>
+      <p>Every question comes with a detailed step-by-step explanation so you learn, not just guess.</p>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon">
+        <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 004 17V5a2 2 0 012-2h12a2 2 0 012 2v12"/></svg>
+      </div>
+      <h3>All SAT sections</h3>
+      <p>Reading & Writing, Math (calculator & no-calculator) — all four modules fully covered.</p>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      </div>
+      <h3>Progress tracking</h3>
+      <p>Your study history is saved automatically. Pick up exactly where you left off, every time.</p>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials">
+  <div class="sec-tag reveal">Student stories</div>
+  <div class="sec-h2 reveal">Real results from real students</div>
+  <div class="testi-grid">
+    <div class="testi-card reveal">
+      <div class="testi-stars">
+        <svg class="star-icon" viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 16.5,14 18.5,22 12,17.5 5.5,22 7.5,14 2,9 9,9"/></svg>
+        <svg class="star-icon" viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 16.5,14 18.5,22 12,17.5 5.5,22 7.5,14 2,9 9,9"/></svg>
+        <svg class="star-icon" viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 16.5,14 18.5,22 12,17.5 5.5,22 7.5,14 2,9 9,9"/></svg>
+        <svg class="star-icon" viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 16.5,14 18.5,22 12,17.5 5.5,22 7.5,14 2,9 9,9"/></svg>
+        <svg class="star-icon" viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 16.5,14 18.5,22 12,17.5 5.5,22 7.5,14 2,9 9,9"/></svg>
+      </div>
+      <p class="testi-text">"I went from a 1180 to a 1420 in three months. The adaptive questions really helped me focus on my weak areas."</p>
+      <div class="testi-author">
+        <div class="testi-avatar">AK</div>
+        <div>
+          <div class="testi-name">Aisha K.</div>
+          <div class="testi-role">Grade 11 student</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card reveal">
+      <div class="testi-stars">
+        <svg class="star-icon" viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 16.5,14 18.5,22 12,17.5 5.5,22 7.5,14 2,9 9,9"/></svg>
+        <svg class="star-icon" viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 16.5,14 18.5,22 12,17.5 5.5,22 7.5,14 2,9 9,9"/></svg>
+        <svg class="star-icon" viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 16.5,14 18.5,22 12,17.5 5.5,22 7.5,14 2,9 9,9"/></svg>
+        <svg class="star-icon" viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 16.5,14 18.5,22 12,17.5 5.5,22 7.5,14 2,9 9,9"/></svg>
+        <svg class="star-icon" viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 16.5,14 18.5,22 12,17.5 5.5,22 7.5,14 2,9 9,9"/></svg>
+      </div>
+      <p class="testi-text">"The explanations are so clear. I finally understand why I get math questions wrong, not just that I got them wrong."</p>
+      <div class="testi-author">
+        <div class="testi-avatar">JR</div>
+        <div>
+          <div class="testi-name">James R.</div>
+          <div class="testi-role">Grade 12 student</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card reveal">
+      <div class="testi-stars">
+        <svg class="star-icon" viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 16.5,14 18.5,22 12,17.5 5.5,22 7.5,14 2,9 9,9"/></svg>
+        <svg class="star-icon" viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 16.5,14 18.5,22 12,17.5 5.5,22 7.5,14 2,9 9,9"/></svg>
+        <svg class="star-icon" viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 16.5,14 18.5,22 12,17.5 5.5,22 7.5,14 2,9 9,9"/></svg>
+        <svg class="star-icon" viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 16.5,14 18.5,22 12,17.5 5.5,22 7.5,14 2,9 9,9"/></svg>
+        <svg class="star-icon" viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 16.5,14 18.5,22 12,17.5 5.5,22 7.5,14 2,9 9,9"/></svg>
+      </div>
+      <p class="testi-text">"As a tutor I assign practice sets to my students every week. The progress dashboard makes it so easy to see who needs help."</p>
+      <div class="testi-author">
+        <div class="testi-avatar">MT</div>
+        <div>
+          <div class="testi-name">Ms. Tran</div>
+          <div class="testi-role">SAT tutor</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHO -->
+<section class="who" id="who">
+  <div class="sec-tag reveal">Who it's for</div>
+  <div class="sec-h2 reveal">Built for every part of the SAT journey</div>
+  <div class="who-grid">
+    <div class="who-card reveal">
+      <div class="who-dot" style="background:#C4854A"></div>
+      <h4>High school students</h4>
+      <p>Self-paced prep that fits your schedule. Practice whenever, wherever.</p>
+    </div>
+    <div class="who-card reveal">
+      <div class="who-dot" style="background:#7B6B5A"></div>
+      <h4>Tutors & coaches</h4>
+      <p>Assign custom practice sets and monitor student progress in real time.</p>
+    </div>
+    <div class="who-card reveal">
+      <div class="who-dot" style="background:#9E8A77"></div>
+      <h4>Schools & institutions</h4>
+      <p>Manage entire student cohorts, track class-wide performance, and identify gaps.</p>
+    </div>
+    <div class="who-card reveal">
+      <div class="who-dot" style="background:#C4AE96"></div>
+      <h4>Parents</h4>
+      <p>Stay informed with progress reports and score trends without the guesswork.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <h2>Ready to ace the SAT?</h2>
+  <p>Join thousands of students already practicing smarter every day. Free to start.</p>
+  <a href="sat-signup.html" class="btn-cream">Create your free account</a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">S<span>AT</span></div>
+  <div class="footer-links">
+    <a href="#">Features</a>
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+    <a href="#">Contact</a>
+  </div>
+  <div class="footer-copy">© 2026 SAT Platform. All rights reserved.</div>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting) { e.target.classList.add('visible'); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+<script>
+  // ── AUTH-AWARE NAV ──────────────────────────────────────
+  SATAuth.init().then(async () => {
+    try {
+      const session = await SATAuth.getSession();
+      if (session) {
+        // User is logged in — swap nav links
+        document.querySelectorAll('a[href="sat-login.html"]').forEach(el => {
+          el.textContent = 'My Dashboard →';
+          el.href = 'sat-dashboard.html';
+        });
+        document.querySelectorAll('a[href="sat-signup.html"]').forEach(el => {
+          el.textContent = 'My Dashboard';
+          el.href = 'sat-dashboard.html';
+        });
+      }
+    } catch(e) {}
+  });
+</script>
+</body>
+</html>
